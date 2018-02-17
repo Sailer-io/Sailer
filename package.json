@@ -1,0 +1,14 @@
+{
+  "name": "dwm-cli",
+  "version": "0.1.0",
+  "description": "Docker Web Manager CLI",
+  "main": "index.js",
+  "repository": "https://gitlab.lenaic.me/DWM/CLI",
+  "author": "Lénaïc Grolleau <lenaic@lenaic.me>",
+  "license": "LicenseRef-LICENSE",
+  "private": true,
+  "dependencies": {
+    "commander": "^2.14.1",
+    "inquirer": "^5.1.0"
+  }
+}
