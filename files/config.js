@@ -1,0 +1,31 @@
+const fs = require('fs')
+const jsonfile = require('jsonfile')
+const path = require('path')
+const file = path.join(require('os').homedir(),'.dwm')
+
+module.exports = class Config{
+
+    constructor(){
+        if (fs.existsSync(file)){
+            this._config = jsonfile.readFileSync(file)
+        }else{
+            this._config = {}
+        }
+    }
+
+    static getInstance(){
+        if (Config._instance === undefined){
+            Config._instance = new Config()
+        }
+        return Config._instance
+    }
+
+    add(object){
+        Object.assign(this._config, object)
+        this.save()
+    }
+
+    save(){
+        jsonfile.writeFileSync(file, this._config)
+    }
+}
