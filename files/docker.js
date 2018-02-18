@@ -1,10 +1,8 @@
-const {exec} = require('child_process')
+const spawn = require(`child_process`).spawnSync
 
 module.exports = class Docker{
     static getAll() {
-        const me=exec('whoami')
-        while (true){
-            console.log(me.stdout)
-        }
+        const me=spawn(`whoami`)
+        console.log(me.stdout.toString())
     }
 }
