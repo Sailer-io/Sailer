@@ -1,8 +1,2 @@
-<<<<<<< HEAD
-node_modules
 dist
-=======
-.idea
-*.iml
-build
->>>>>>> e937d550c28bf1096c98538d0c23d04f3f483ab2
+node_modules
