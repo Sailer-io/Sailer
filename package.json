@@ -6,7 +6,10 @@
   "repository": "https://gitlab.lenaic.me/DWM/CLI",
   "author": "Lénaïc Grolleau <lenaic@lenaic.me>",
   "license": "LicenseRef-LICENSE",
-  "private": true,
+  "private": false,
+  "bin": {
+    "dwm": "index.js"
+  },
   "dependencies": {
     "@octokit/rest": "^14.0.9",
     "axios": "^0.17.1",
@@ -15,7 +18,6 @@
     "dockerode": "^2.5.3",
     "inquirer": "^5.1.0",
     "jsonfile": "^4.0.0",
-    "lodash": "^4.17.5",
     "vorpal": "^1.12.0"
   }
 }

@@ -3,25 +3,43 @@ const vorpal = require('vorpal')()
 const colors = require('colors')
 const Config = require('./config')
 
+
 module.exports = class Connect {
 
     constructor(){
-        
+        this._isAuth = false
     }
 
-    static getInstance(vorpal){
+    static async getInstance(vorpal){
         Connect._vorpal = vorpal
         if (Connect._instance === undefined){
             Connect._instance = new Connect()
+
+            let token = Config.getInstance().get('tokens', 'github')
+            
+            if (token !== null){
+                await Connect._instance.silentOauthLogin(token)
+                await Connect._instance.assertLogin().then(() => Connect._instance._isAuth = true).catch(() => Connect._instance._isAuth = false)
+            }
         }
         return Connect._instance
     }
 
+    isAuth(){
+        if (this._isAuth){
+            return true
+        }else{
+            console.log('This action requires you to launch the `login` command before.'.red.bold)
+            return false
+        }
+    }
     
 
     async listUserRepos(){
-        let repos = await octokit.repos.getForUser({username: `lelenaic`})
-        repos.data.forEach(r => console.log(r.name))
+        if (this.isAuth()){
+            let repos = await octokit.repos.getAll()
+            repos.data.forEach(r => console.log(r.name))
+        }
     }
 
     async promptLogin(){
@@ -43,12 +61,17 @@ module.exports = class Connect {
         }else{
             await this.basicLogin()
         }
-        
-        const user = await octokit.users.get()
+        await this.assertLogin()
         if (token !== null){
             Config.getInstance().add({tokens: {github: token}})
         }
+        this._isAuth = true
         console.log(`SUCCESS!`.green.bold)
+    }
+
+    async assertLogin(){
+        await octokit.users.get()
+        this._isAuth = true
     }
 
     async oauthLogin(){
@@ -64,6 +87,13 @@ module.exports = class Connect {
             token: credentials.token
         })
         return credentials.token
+    }
+
+    async silentOauthLogin(token){
+        octokit.authenticate({
+            type: 'token',
+            token
+        })
     }
 
     async basicLogin(){

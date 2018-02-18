@@ -3,7 +3,7 @@ const jsonfile = require('jsonfile')
 const path = require('path')
 const file = path.join(require('os').homedir(),'.dwm')
 
-module.exports = class Config{
+module.exports = class Config {
 
     constructor(){
         if (fs.existsSync(file)){
@@ -25,7 +25,17 @@ module.exports = class Config{
         this.save()
     }
 
+    get(...keys){
+        let conf = {...this._config};
+        for (let key of keys){
+            if (conf[key] === undefined) return null
+            conf = conf[key]
+        }
+        return conf
+    }
+
     save(){
         jsonfile.writeFileSync(file, this._config)
+        fs.chmodSync(file, '0600')
     }
 }
