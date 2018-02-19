@@ -56,11 +56,13 @@ module.exports = class Connect {
             }
         ])
         let token = null
+        
         if (type.type === choices[0]){
             token = await this.oauthLogin()
         }else{
             await this.basicLogin()
         }
+
         await this.assertLogin()
         if (token !== null){
             Config.getInstance().add({tokens: {github: token}})
@@ -75,6 +77,8 @@ module.exports = class Connect {
     }
 
     async oauthLogin(){
+        console.log('Create your token here: https://github.com/settings/tokens')
+        console.log('Sailer needs `repo` `write:public_key` and `read:public_key` perms')
         const credentials = await Connect._vorpal.prompt([
             {
               type: 'input',

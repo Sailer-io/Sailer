@@ -20,11 +20,11 @@ vorpal.command('repos', 'List all repositories').action((args, c) => {
   })
 })
 
-vorpal.command('login', 'Connect DWM CLI to your Github account').action(function (a,c) {
+vorpal.command('login', 'Connect Sailer CLI to your Github account').action(function (a,c) {
+  console.log('Note that 2FA is not supported, you must use Tokens to login if your account is protocted by 2FA.')
   Connect.getInstance(this).then((con) => {
     con.promptLogin().then(c).catch(() => {
       console.log('Bad credentials, please try again.')
-      console.log('Note that 2FA is not supported, you must use Tokens to login.')
       c()
     })
   })

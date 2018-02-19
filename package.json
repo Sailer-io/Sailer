@@ -1,14 +1,14 @@
 {
-  "name": "dwm-cli",
+  "name": "sailer-cli",
   "version": "0.1.0",
-  "description": "Docker Web Manager CLI",
+  "description": "Sailer CLI",
   "main": "index.js",
-  "repository": "https://gitlab.lenaic.me/DWM/CLI",
+  "repository": "https://github.com/Sailer-io/CLI",
   "author": "Lénaïc Grolleau <lenaic@lenaic.me>",
-  "license": "LicenseRef-LICENSE",
+  "license": "MIT",
   "private": false,
   "bin": {
-    "dwm": "index.js"
+    "sailer": "index.js"
   },
   "dependencies": {
     "@octokit/rest": "^14.0.9",
