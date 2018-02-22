@@ -18,6 +18,8 @@
     "dockerode": "^2.5.3",
     "inquirer": "^5.1.0",
     "jsonfile": "^4.0.0",
+    "merge-deep": "^3.0.1",
+    "simple-git": "^1.91.0",
     "vorpal": "^1.12.0"
   }
 }

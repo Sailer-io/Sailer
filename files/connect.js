@@ -42,30 +42,90 @@ module.exports = class Connect {
         }
     }
 
-    async promptLogin(){
-        const choices = [
-            'Personnal Access Token',
-            'Username/Password'
-        ]
-        const type = await Connect._vorpal.prompt([
+    async chooseWhereToConnect(choices){
+        const place = await Connect._vorpal.prompt([
             {
                 type: 'list',
-                message: 'Which auth type?',
-                name: 'type',
+                message: 'Where do you want to connect?',
+                name: 'place',
                 choices
             }
         ])
-        let token = null
-        
-        if (type.type === choices[0]){
-            token = await this.oauthLogin()
-        }else{
-            await this.basicLogin()
+        if (place.place != choices[0]){
+            console.log(`Warning, we won't test your credentials if you don't use Github Cloud.`.yellow)
+            console.log(`Your credentials will be tested only when Sailer will clone a repository.`.yellow)
         }
+        return place.place
+    }
 
+    async promptLogin(){
+        const choices = [
+            'Github Cloud',
+            'Other Git provider'
+        ]
+        const place = await this.chooseWhereToConnect(choices)
+        if (place==choices[0]){
+            const token = await this.github()
+        }else{
+            const token = await this.otherGitProvider()
+        }
+    }
+
+    async otherGitProvider(){
+        console.log('You need to create an access for Sailer. Sailer needs full power for private repos and for SSH keys.'.blue)
+        const info = await Connect._vorpal.prompt([
+            {
+                type: 'input',
+                name: 'name',
+                message: 'First, give it a name (just for you): '
+            },
+            {
+                type: 'input',
+                name: 'url',
+                message: 'Your Git provider URL (ex: git.example.net, no http://): '
+            },
+            {
+                type: 'input',
+                name: 'token',
+                message: 'Personnal Access Token: '
+            }
+        ])
+        const name = Config.getInstance().get('tokens', info.name)
+        if (name !== null){
+            const overwrite = await Connect._vorpal.prompt([
+                {
+                    type: 'confirm',
+                    message: 'An account with this name already exists, overwrite?',
+                    name: 'confirm',
+                    default: false
+                }
+            ])
+            if (overwrite.confirm === false) return;
+        }
+        const credentials = {tokens: {}}
+        credentials.tokens[info.name] = {}
+        credentials.tokens[info.name].url = info.url
+        credentials.tokens[info.name].token = info.token
+        Config.getInstance().add(credentials)
+    }
+
+    async github(){
+        console.log('Create your token here: https://github.com/settings/tokens')
+        console.log('Sailer needs `repo` `write:public_key` and `read:public_key` perms')
+        const credentials = await Connect._vorpal.prompt([
+            {
+              type: 'password',
+              name: 'token',
+              message: 'Personnal Access Token: '
+            }
+        ])
+        octokit.authenticate({
+            type: 'token',
+            token: credentials.token
+        })
         await this.assertLogin()
-        if (token !== null){
-            Config.getInstance().add({tokens: {github: token}})
+        if (credentials.token !== null){
+            Config.getInstance().add({tokens: {github: credentials.token}})
         }
         this._isAuth = true
         console.log(`SUCCESS!`.green.bold)
@@ -77,20 +137,7 @@ module.exports = class Connect {
     }
 
     async oauthLogin(){
-        console.log('Create your token here: https://github.com/settings/tokens')
-        console.log('Sailer needs `repo` `write:public_key` and `read:public_key` perms')
-        const credentials = await Connect._vorpal.prompt([
-            {
-              type: 'input',
-              name: 'token',
-              message: 'Personnal Access Token: '
-            }
-        ])
-        octokit.authenticate({
-            type: 'token',
-            token: credentials.token
-        })
-        return credentials.token
+        
     }
 
     async silentOauthLogin(token){

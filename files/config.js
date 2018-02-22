@@ -2,6 +2,7 @@ const fs = require('fs')
 const jsonfile = require('jsonfile')
 const path = require('path')
 const file = path.join(require('os').homedir(),'.sailer')
+const merge = require('merge-deep')
 
 module.exports = class Config {
 
@@ -21,7 +22,7 @@ module.exports = class Config {
     }
 
     add(object){
-        Object.assign(this._config, object)
+        this._config = merge(this._config, object)
         this.save()
     }
 
