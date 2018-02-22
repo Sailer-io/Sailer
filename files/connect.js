@@ -90,6 +90,10 @@ module.exports = class Connect {
                 message: 'Personnal Access Token: '
             }
         ])
+        if (info.name === 'github'){
+            console.log('`github` name is reserved, sorry'.red)
+            return this.otherGitProvider()
+        }
         const name = Config.getInstance().get('tokens', info.name)
         if (name !== null){
             const overwrite = await Connect._vorpal.prompt([
