@@ -1,7 +1,7 @@
 const fs = require('fs')
 const jsonfile = require('jsonfile')
 const path = require('path')
-const file = path.join(require('os').homedir(),'.dwm')
+const file = path.join(require('os').homedir(),'.sailer')
 
 module.exports = class Config {
 
