@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const Docker = require('./files/docker')
 const vorpal = require('vorpal')()
 const Connect = require('./files/connect')
