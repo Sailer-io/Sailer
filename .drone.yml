@@ -1,6 +1,0 @@
-pipeline:
-  lint:
-    image: node
-    commands:
-      - yarn
-      - yarn lint
