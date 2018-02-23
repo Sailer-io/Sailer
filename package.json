@@ -2,6 +2,13 @@
   "name": "sailer-cli",
   "version": "0.1.4-alpha.1",
   "description": "Sailer CLI",
+  "engines": {
+    "node": ">=9.5.0"
+  },
+  "scripts": {
+    "lint": "./node_modules/.bin/eslint src/**",
+    "flint": "./node_modules/.bin/eslint --fix src/**"
+  },
   "main": "index.js",
   "repository": "https://github.com/Sailer-io/CLI",
   "author": "Lénaïc Grolleau <lenaic@lenaic.me>",
@@ -21,5 +28,13 @@
     "merge-deep": "^3.0.1",
     "simple-git": "^1.91.0",
     "vorpal": "^1.12.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.18.1",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1"
   }
 }
