@@ -1,11 +1,11 @@
 {
   "name": "sailer-cli",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "Sailer CLI",
   "main": "index.js",
   "repository": "https://github.com/Sailer-io/CLI",
   "author": "Lénaïc Grolleau <lenaic@lenaic.me>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "private": false,
   "bin": {
     "sailer": "index.js"

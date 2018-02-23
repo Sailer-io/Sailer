@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const pjson = require("./package.json");
 const axios = require("axios").default;
 const node = require('./files/node')
@@ -30,7 +31,7 @@ vorpal.command('login', 'Connect Sailer CLI to a Git provider').action(function 
   })
 })
 
-vorpal.command('ps', 'List all running DWM containers')
+vorpal.command('ps', 'List all running Sailer containers')
 .action(function(args, callback) {
   Docker.getAll().then((c) => {
     c.forEach(container => console.log(container.Names[0]))
@@ -38,4 +39,4 @@ vorpal.command('ps', 'List all running DWM containers')
   })
 });
 
-vorpal.delimiter('DWM~$').show();
+vorpal.delimiter('Sailer~$').show();
