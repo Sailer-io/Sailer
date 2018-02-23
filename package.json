@@ -1,6 +1,6 @@
 {
   "name": "sailer-cli",
-  "version": "0.1.4",
+  "version": "0.1.4-alpha.1",
   "description": "Sailer CLI",
   "main": "index.js",
   "repository": "https://github.com/Sailer-io/CLI",
