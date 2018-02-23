@@ -9,13 +9,13 @@
     "lint": "./node_modules/.bin/eslint src/**",
     "flint": "./node_modules/.bin/eslint --fix src/**"
   },
-  "main": "index.js",
+  "main": "src/index.js",
   "repository": "https://github.com/Sailer-io/CLI",
   "author": "Lénaïc Grolleau <lenaic@lenaic.me>",
   "license": "Apache-2.0",
   "private": false,
   "bin": {
-    "sailer": "index.js"
+    "sailer": "src/index.js"
   },
   "dependencies": {
     "@octokit/rest": "^14.0.9",
