@@ -1,30 +1,25 @@
-const PASS = 'cvxLSCXLC8XwsYf-b6pL'
-const REPO = 'gitlab.lenaic.me/DWM/CLI'
-
-module.exports = class Manager {
-  constructor (vorpal) {
-    this._v = vorpal
-  }
-
-  async clone () {
-    const choices = [
-      'Yes, use Github',
-      ''
-    ]
-    const type = await Connect._vorpal.prompt([
-      {
-        type: 'input',
-        message: 'Do you need to be authenticated?',
-        name: 'type'
-      }
-    ])
-  }
-}
-
+const REPO = 'github.com/Lelenaic/test-dwm'
+const uniqid = require('uniqid')
+const Docker = require('dockerode')
+const docker = new Docker()
 const git = require('simple-git/promise')
+const Timer = require('../timer')
+const Config  = require('../config').getInstance()
+const folder = '/tmp/'+uniqid()+'/'
+const PASS = Config.get('tokens', 'github')
 const remote = `https://sailer:${PASS}@${REPO}`
 
+
+Timer.start()
 git().silent(true)
-  .clone(remote)
-  .then(() => console.log('finished'))
+  .clone(remote, folder)
+  .then(() => {
+    docker.buildImage({
+      context: folder,
+      src: ['Dockerfile']
+    }, {t: 'test-sailer'}).then(() => {
+      console.log('ok')
+      Timer.stop()
+    });
+  })
   .catch((err) => console.error('failed: ', err))

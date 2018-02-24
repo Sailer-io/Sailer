@@ -904,6 +904,10 @@ lru-cache@^4.0.1:
     pseudomap "^1.0.2"
     yallist "^2.1.2"
 
+macaddress@^0.2.8:
+  version "0.2.8"
+  resolved "https://registry.yarnpkg.com/macaddress/-/macaddress-0.2.8.tgz#5904dc537c39ec6dbefeae902327135fa8511f12"
+
 merge-deep@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/merge-deep/-/merge-deep-3.0.1.tgz#75ee9a3d9c5dbb2f74e3a40d0d2bfefa36b6187b"
@@ -1420,6 +1424,12 @@ type-check@~0.3.2:
 typedarray@^0.0.6, typedarray@~0.0.5:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
+
+uniqid@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/uniqid/-/uniqid-4.1.1.tgz#89220ddf6b751ae52b5f72484863528596bb84c1"
+  dependencies:
+    macaddress "^0.2.8"
 
 url-template@^2.0.8:
   version "2.0.8"
