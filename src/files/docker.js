@@ -1,4 +1,3 @@
-const spawn = require(`child_process`).spawn
 const Docker = require('dockerode')
 const docker = new Docker()
 

@@ -1,5 +1,4 @@
 const octokit = require('@octokit/rest')()
-const colors = require('colors')
 const Config = require('./config')
 const inquirer = require('inquirer')
 
@@ -61,9 +60,9 @@ module.exports = class Connect {
     ]
     const place = await this.chooseWhereToConnect(choices)
     if (place == choices[0]) {
-      const token = await this.github()
+      await this.github()
     } else {
-      const token = await this.otherGitProvider()
+      await this.otherGitProvider()
     }
   }
 

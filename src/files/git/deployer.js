@@ -1,3 +1,4 @@
+/* eslint-disable */
 const REPO = 'github.com/Lelenaic/test-dwm'
 const uniqid = require('uniqid')
 const git = require('simple-git/promise')
