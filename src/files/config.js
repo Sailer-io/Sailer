@@ -1,8 +1,8 @@
-const fs = require('fs')
-const jsonfile = require('jsonfile')
-const path = require('path')
-const file = path.join(require('os').homedir(), '.sailer')
-const merge = require('merge-deep')
+const fs = require(`fs`)
+const jsonfile = require(`jsonfile`)
+const path = require(`path`)
+const file = path.join(require(`os`).homedir(), `.sailer`)
+const merge = require(`merge-deep`)
 
 module.exports = class Config {
   constructor () {
@@ -36,6 +36,6 @@ module.exports = class Config {
 
   save () {
     jsonfile.writeFileSync(file, this._config)
-    fs.chmodSync(file, '0600')
+    fs.chmodSync(file, `0600`)
   }
 }

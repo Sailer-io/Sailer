@@ -1,4 +1,4 @@
-const axios = require('../axios')
+const axios = require(`../axios`)
 
 module.exports = class Server {
   constructor () {
@@ -12,6 +12,10 @@ module.exports = class Server {
   }
 
   async ping () {
-    return await axios.get('ping')
+    return await axios.get(`ping`)
+  }
+
+  async whoami(){
+    return await axios.get(`whoami`)
   }
 }

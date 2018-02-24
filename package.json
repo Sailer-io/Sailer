@@ -1,6 +1,6 @@
 {
   "name": "sailer-cli",
-  "version": "0.1.4-alpha.1",
+  "version": "0.1.4-alpha.13",
   "description": "Sailer CLI",
   "engines": {
     "node": ">=9.5.0"
@@ -24,6 +24,7 @@
     "colors": "^1.1.2",
     "commander": "^2.14.1",
     "dockerode": "^2.5.3",
+    "get-port": "^3.2.0",
     "inquirer": "^5.1.0",
     "jsonfile": "^4.0.0",
     "merge-deep": "^3.0.1",

@@ -1,6 +1,6 @@
-const octokit = require('@octokit/rest')()
-const Config = require('./config')
-const inquirer = require('inquirer')
+const octokit = require(`@octokit/rest`)()
+const Config = require(`./config`)
+const inquirer = require(`inquirer`)
 
 module.exports = class Connect {
   constructor () {
@@ -11,7 +11,7 @@ module.exports = class Connect {
     if (Connect._instance === undefined) {
       Connect._instance = new Connect()
 
-      let token = Config.getInstance().get('tokens', 'github')
+      let token = Config.getInstance().get(`tokens`, `github`)
 
       if (token !== null) {
         await Connect._instance.silentOauthLogin(token)
@@ -25,7 +25,7 @@ module.exports = class Connect {
     if (this._isAuth) {
       return true
     } else {
-      console.log('This action requires you to launch the `login` command before.'.red.bold)
+      console.log(`This action requires you to launch the \`login\` command before.`.red.bold)
       return false
     }
   }
@@ -40,9 +40,9 @@ module.exports = class Connect {
   async chooseWhereToConnect (choices) {
     const place = await inquirer.prompt([
       {
-        type: 'list',
-        message: 'Where do you want to connect?',
-        name: 'place',
+        type: `list`,
+        message: `Where do you want to connect?`,
+        name: `place`,
         choices
       }
     ])
@@ -55,8 +55,8 @@ module.exports = class Connect {
 
   async promptLogin () {
     const choices = [
-      'Github Cloud',
-      'Other Git provider'
+      `Github Cloud`,
+      `Other Git provider`
     ]
     const place = await this.chooseWhereToConnect(choices)
     if (place == choices[0]) {
@@ -67,59 +67,59 @@ module.exports = class Connect {
   }
 
   async otherGitProvider () {
-    console.log('You need to create an access for Sailer. Sailer needs full power for private repos and for SSH keys.'.blue)
+    console.log(`You need to create an access for Sailer. Sailer needs full power for private repos and for SSH keys.`.blue)
     const info = await inquirer.prompt([
       {
-        type: 'input',
-        name: 'name',
-        message: 'First, give it a name (just for you): '
+        type: `input`,
+        name: `url`,
+        message: `Your Git provider URL (ex: git.example.net, no http://): `
       },
       {
-        type: 'input',
-        name: 'url',
-        message: 'Your Git provider URL (ex: git.example.net, no http://): '
+        type: `input`,
+        name: `username`,
+        message: `Username: `
       },
       {
-        type: 'input',
-        name: 'token',
-        message: 'Personnal Access Token: '
+        type: `input`,
+        name: `token`,
+        message: `Personnal Access Token: `
       }
     ])
-    if (info.name === 'github') {
-      console.log('`github` name is reserved, sorry'.red)
+    if (info.url === `github.com`) {
+      console.log(`Use the first option of the 'login' command to connect to github.com`.red)
       return this.otherGitProvider()
     }
-    const name = Config.getInstance().get('tokens', info.name)
+    const name = Config.getInstance().get(`tokens`, info.url)
     if (name !== null) {
       const overwrite = await inquirer.prompt([
         {
-          type: 'confirm',
-          message: 'An account with this name already exists, overwrite?',
-          name: 'confirm',
+          type: `confirm`,
+          message: `An account from this Git provider already exists, overwrite?`,
+          name: `confirm`,
           default: false
         }
       ])
       if (overwrite.confirm === false) return
     }
     const credentials = {tokens: {}}
-    credentials.tokens[info.name] = {}
-    credentials.tokens[info.name].url = info.url
-    credentials.tokens[info.name].token = info.token
+    credentials.tokens[info.url] = {}
+    credentials.tokens[info.url].username = info.username
+    credentials.tokens[info.url].token = info.token
     Config.getInstance().add(credentials)
   }
 
   async github () {
-    console.log('Create your token here: https://github.com/settings/tokens')
-    console.log('Sailer needs `repo` `write:public_key` and `read:public_key` perms')
+    console.log(`Create your token here: https://github.com/settings/tokens`)
+    console.log(`Sailer needs \`repo\` \`write:public_key\` and \`read:public_key\` perms`)
     const credentials = await inquirer.prompt([
       {
-        type: 'password',
-        name: 'token',
-        message: 'Personnal Access Token: '
+        type: `input`,
+        name: `token`,
+        message: `Personnal Access Token: `
       }
     ])
     octokit.authenticate({
-      type: 'token',
+      type: `token`,
       token: credentials.token
     })
     await this.assertLogin()
@@ -135,36 +135,10 @@ module.exports = class Connect {
     this._isAuth = true
   }
 
-  async oauthLogin () {
-
-  }
-
   async silentOauthLogin (token) {
     octokit.authenticate({
-      type: 'token',
+      type: `token`,
       token
-    })
-  }
-
-  async basicLogin () {
-    console.log(`Please note that your credentials are not saved. DWM will ask you to login each time you launch the CLI.`)
-    console.log(`Use Personnal access token to stay logged.`)
-    const credentials = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'username',
-        message: 'Username: '
-      },
-      {
-        type: 'password',
-        name: 'password',
-        message: 'Password: '
-      }
-    ])
-    octokit.authenticate({
-      username: credentials.username,
-      password: credentials.password,
-      type: 'basic'
     })
   }
 }

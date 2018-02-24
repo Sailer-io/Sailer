@@ -1,4 +1,4 @@
-const Docker = require('dockerode')
+const Docker = require(`dockerode`)
 const docker = new Docker()
 
 module.exports = class Docker {
