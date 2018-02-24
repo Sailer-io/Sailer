@@ -1,15 +1,14 @@
 const octokit = require('@octokit/rest')()
-const vorpal = require('vorpal')()
 const colors = require('colors')
 const Config = require('./config')
+const inquirer = require('inquirer')
 
 module.exports = class Connect {
   constructor () {
     this._isAuth = false
   }
 
-  static async getInstance (vorpal) {
-    Connect._vorpal = vorpal
+  static async getInstance () {
     if (Connect._instance === undefined) {
       Connect._instance = new Connect()
 
@@ -40,7 +39,7 @@ module.exports = class Connect {
   }
 
   async chooseWhereToConnect (choices) {
-    const place = await Connect._vorpal.prompt([
+    const place = await inquirer.prompt([
       {
         type: 'list',
         message: 'Where do you want to connect?',
@@ -70,7 +69,7 @@ module.exports = class Connect {
 
   async otherGitProvider () {
     console.log('You need to create an access for Sailer. Sailer needs full power for private repos and for SSH keys.'.blue)
-    const info = await Connect._vorpal.prompt([
+    const info = await inquirer.prompt([
       {
         type: 'input',
         name: 'name',
@@ -93,7 +92,7 @@ module.exports = class Connect {
     }
     const name = Config.getInstance().get('tokens', info.name)
     if (name !== null) {
-      const overwrite = await Connect._vorpal.prompt([
+      const overwrite = await inquirer.prompt([
         {
           type: 'confirm',
           message: 'An account with this name already exists, overwrite?',
@@ -113,7 +112,7 @@ module.exports = class Connect {
   async github () {
     console.log('Create your token here: https://github.com/settings/tokens')
     console.log('Sailer needs `repo` `write:public_key` and `read:public_key` perms')
-    const credentials = await Connect._vorpal.prompt([
+    const credentials = await inquirer.prompt([
       {
         type: 'password',
         name: 'token',
@@ -151,7 +150,7 @@ module.exports = class Connect {
   async basicLogin () {
     console.log(`Please note that your credentials are not saved. DWM will ask you to login each time you launch the CLI.`)
     console.log(`Use Personnal access token to stay logged.`)
-    const credentials = await Connect._vorpal.prompt([
+    const credentials = await inquirer.prompt([
       {
         type: 'input',
         name: 'username',

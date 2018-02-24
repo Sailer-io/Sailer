@@ -1,7 +1,13 @@
 language: node_js
 node_js:
-  - "9.5"
+- '9.5'
 cache: yarn
-
-script:
-  yarn lint
+script: yarn lint
+deploy:
+  provider: npm
+  email: lenaic@lenaic.me
+  api_key:
+    secure: DJCzphbKAEOOw2BnT0xnMGenDbXgLmK+43qVOLN+I74pIr+bEXQxfRSF7b9Z9CqMqH4oLT518xlpvL57VcOBcFudrK0qlqDCf9KiBf+jWqNYOP0KquqvRjzC6lDI/X0LseybLjBQvBaIeNBcGvFJPJRM+CGcpHOdSK9xfHy7TiamP9pG6dv+JuV2NosggZ3511vR2gUFHe4Wv0R3rL9O71m0pqmpE8F+1LPBj1WhuXFc7E9hdeuixEgqn4+tzXJ2PCOTFFHB5szXUEEwCHwEwP2DQL2wJYOyIvU/rG9Tn3dfnDc+oK9HEfyCr2vtk2fW9hN2kRJPcg9mnkMcw4iyJAcfSSJjYIdIEGDtIZR9qVrWwIanFzYpXAKrmjeWU/+RdR5xmNZV60ax6ZlObyaBo/9cjyB6g1I3c4O19vRTNhYljhubSfN9AWDwKCT20szQBOie9Hs0eBFBzOj79lhuoGMCDRnEC58yyuPoyI+wV3thQwveRMkkgh4lr8nT2tcUU3F/h+7v1AKQvkbE3VbDVF1m1zIQqwrXRGUU6/pT66W/X40g/LbY23/Mxyad3RAwh/WsqRnIzA4otMPuJKCXPbrJIny7/eXLprQyeFCiONgkiqudFj0V7nIZC0e9NXhUIhYflMLqdny/dH03OTRqlKrbv4tuSNx1yuzEhskS66I=
+  on:
+    branch: master
+    repo: Sailer-io/CLI
