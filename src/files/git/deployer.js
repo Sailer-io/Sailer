@@ -65,7 +65,7 @@ module.exports = class Deployer{
 
   async launchContainer(){
     const portToPublish = await this.getPortToPublish()
-    exec(`docker container run -d -t -p ${this._port}:${portToPublish} -v ${this._deployId}:/app ${this._deployId}`)
+    exec(`docker container run -d -t --name ${this._deployId} -p ${this._port}:${portToPublish} -v ${this._deployId}:/app ${this._deployId}`)
   }
 
   getPortToPublish(){
