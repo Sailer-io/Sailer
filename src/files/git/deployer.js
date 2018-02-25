@@ -34,8 +34,10 @@ module.exports = class Deployer{
 
   async deploy(mustWeSSL){
     Timer.start()
+    const existingContainer = await this.verifyIfExists()
     await this.createVolume()
     const cloneUrl = this.getCloneUrl(this._repo)
+    if (existingContainer.data.success) return this.updateDepoyment(existingContainer.data.data, cloneUrl)
     git().silent(true)
       .clone(cloneUrl, this._cloneFolder)
       .then(() => {
@@ -80,13 +82,61 @@ module.exports = class Deployer{
       })
   }
 
+  async updateDepoyment(container){
+    this.getVolumePath(container.uid).then(path => {
+      console.log(`Stopping current container...`)
+      exec(`docker container stop ${container.uid}`, () => {
+        console.log(`Done in ${Timer.stop()} ms.`)
+        Timer.start()
+        console.log(`Updating sources...`)
+        git(path).pull().then(() => {
+          console.log(`Done in ${Timer.stop()} ms. Rebuilding Docker image...`)
+          Timer.start()
+          exec(`docker build -t ${this._deployId} ${path}`, (err) => {
+            if (err){
+              console.error(`exec error: ${err}`)
+            }else{
+              console.log(`Build done in ${Timer.stop()} ms.`)
+              console.log(`Re-creating Nginx Config...`)
+              Timer.start()
+              this.deployNginxConfig().then(() => {
+                console.log(`Nginx ready in ${Timer.stop()} ms.`)
+                Timer.start()
+                console.log(`Launching container...`)
+                this.launchContainer().then(() => {
+                  console.log(`Updating container on master server...`)
+                  this.registerToMaster().then(() => {
+                    Timer.stop()
+                    console.log(`Container successfully launched!`.green.bold)
+                    console.log(`Your website was updated from the latest sources.`.green.bold)
+                  }).catch(() => {
+                    Timer.stop()
+                    console.log(`The container is online, but there was an error while contacting the master server.`.yellow.bold)
+                    console.log(`Please investigate.`.yellow.bold)
+                  })
+                })
+              })
+            }
+          })
+          
+        })
+      })
+      
+    })
+    
+  }
+
+  verifyIfExists(){
+    return axios.get(`containers/${this._domain}`)
+  }
+
  async registerToMaster(){
    return axios.post(`containers`, {domain: this._domain, uid: this._deployId, repo: this._repo})
  }
 
   async launchContainer(){
     const portToPublish = await this.getPortToPublish()
-    exec(`docker container run -d -t --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:/app ${this._deployId}`)
+    exec(`docker container run -dt --restart unless-stopped --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:/app ${this._deployId}`)
   }
 
   getPortToPublish(){
@@ -120,11 +170,19 @@ module.exports = class Deployer{
   createVolume(){
     return new Promise((resolve) => {
       exec(`docker volume create ${this._deployId}`, () => {
-        exec(`docker volume inspect ${this._deployId}`, (error, stdout) => {
-          const info = JSON.parse(stdout)[0]
-          this._folder = info.Mountpoint
+        this.getVolumePath(this._deployId).then(path => {
+          this._folder = path
           resolve()
         })
+      })
+    })
+  }
+
+  getVolumePath(deployId){
+    return new Promise (resolve => {
+        exec(`docker volume inspect ${deployId}`, (error, stdout) => {
+        const info = JSON.parse(stdout)[0]
+        resolve(info.Mountpoint)
       })
     })
   }
@@ -162,7 +220,7 @@ module.exports = class Deployer{
   doesItNeedsAuth(){
     const tokens = config.get(`tokens`)
     if (this._repo.startsWith(`github.com`) && tokens.github !== undefined)
-      return {login: `sailer`, token: tokens.github}
+      return {username: `sailer`, token: tokens.github}
     for (let t in tokens){
       if (this._repo.startsWith(t)) return tokens[t]
     }
