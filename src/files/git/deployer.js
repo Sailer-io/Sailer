@@ -8,6 +8,7 @@ const fs = require(`fs`)
 const nginxBaseConfig = require(`./nginx-conf`)
 const getPort = require(`get-port`)
 const util = require(`util`)
+const axios = require(`../axios`)
 
 module.exports = class Deployer{
   constructor(repo, domain, mustWeSSL){
@@ -58,8 +59,15 @@ module.exports = class Deployer{
               }
               console.log(`Launching container...`)
               this.launchContainer().then(() => {
-                Timer.stop()
-                console.log(`Container successfully launched!`)
+                console.log(`Registering container on master server...`)
+                this.registerToMaster().then(() => {
+                  Timer.stop()
+                  console.log(`Container successfully launched!`.green.bold)
+                }).catch(() => {
+                  Timer.stop()
+                  console.log(`The container is online, but there was an error while contacting the master server.`.yellow.bold)
+                  console.log(`Please investigate.`.yellow.bold)
+                })
               })
             })
           }
@@ -71,6 +79,10 @@ module.exports = class Deployer{
         console.error(`Please verify the URL and use the \`login\` command before if needed.`.red.bold)
       })
   }
+
+ async registerToMaster(){
+   return axios.post(`containers`, {domain: this._domain, uid: this._deployId, repo: this._repo})
+ }
 
   async launchContainer(){
     const portToPublish = await this.getPortToPublish()
