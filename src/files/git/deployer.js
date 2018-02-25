@@ -19,7 +19,16 @@ module.exports = class Deployer{
     this._port = null
     this._domain = domain
     this._mustWeSSL = mustWeSSL
+    this.assertDomainIsValid()
     this.parseRepoUrl()
+  }
+
+  assertDomainIsValid(){
+    //eslint-disable-next-line
+    const isValid = this._domain.match(`^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$`)
+    if (isValid === null){
+      console.log(`Error, given domain seems erroneous.`)
+    }
   }
 
   async deploy(mustWeSSL){
@@ -65,7 +74,7 @@ module.exports = class Deployer{
 
   async launchContainer(){
     const portToPublish = await this.getPortToPublish()
-    exec(`docker container run -d -t --name ${this._deployId} -p ${this._port}:${portToPublish} -v ${this._deployId}:/app ${this._deployId}`)
+    exec(`docker container run -d -t --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:/app ${this._deployId}`)
   }
 
   getPortToPublish(){
@@ -82,15 +91,10 @@ module.exports = class Deployer{
 
   async deployNginxConfig(){
     await this.generatePort()
-    this.allowInUfw()
     const nginxConfig = util.format(nginxBaseConfig, 
       this._domain,this._domain,this._domain, this._port)
     fs.writeFileSync(`/etc/nginx/sites-enabled/${this._domain}.conf`, nginxConfig)
     exec(`service nginx reload`)
-  }
-
-  allowInUfw(){
-    exec(`ufw deny ${this._port}`)
   }
 
   async generatePort(){
