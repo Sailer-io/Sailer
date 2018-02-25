@@ -11,13 +11,14 @@ const util = require(`util`)
 
 module.exports = class Deployer{
   constructor(repo, domain, mustWeSSL){
+    this._deployId = uniqid()
     this._protocol = `https`
     this._repo = repo
     this._folder = null
+    this._cloneFolder = `/tmp/${this._deployId}`
     this._port = null
     this._domain = domain
     this._mustWeSSL = mustWeSSL
-    this._deployId = uniqid()
     this.parseRepoUrl()
   }
 
@@ -26,12 +27,12 @@ module.exports = class Deployer{
     await this.createVolume()
     const cloneUrl = this.getCloneUrl(this._repo)
     git().silent(true)
-      .clone(cloneUrl, this._folder)
+      .clone(cloneUrl, this._cloneFolder)
       .then(() => {
         let t = Timer.stop()
         console.log(`Clone done in ${t} ms, building the Docker image. This could take a while...`)
         Timer.start()
-        exec(`docker build -t ${this._deployId} ${this._folder}`, (err) => {
+        exec(`docker build -t ${this._deployId} ${this._cloneFolder}`, (err) => {
           const t = Timer.stop()
           if (err) {
             console.error(`exec error: ${err}`)
