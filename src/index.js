@@ -41,7 +41,7 @@ program.command(`ping`)
 program.command(`whoami`).description(`Who are you on the master server?`)
 .action (() => {
   const srv = Server.getInstance()
-  srv.whoami().then(console.log)
+  srv.whoami().then(data => console.log(data.data))
 })
 
 program.command(`ps`).description(`List all running Sailer containers`)

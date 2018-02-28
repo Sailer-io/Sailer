@@ -1,6 +1,6 @@
 {
   "name": "sailer-cli",
-  "version": "0.1.5-alpha.14",
+  "version": "0.1.5-alpha.15",
   "description": "Sailer CLI",
   "engines": {
     "node": ">=9.5.0"
