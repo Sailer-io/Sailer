@@ -11,12 +11,13 @@ const util = require(`util`)
 const axios = require(`../axios`)
 
 module.exports = class Deployer{
-  constructor(repo, domain, mustWeSSL, deployPort){
+  constructor(repo, domain, mustWeSSL, deployPort, relativePath){
     this._deployId = uniqid()
     this._protocol = `https`
     this._repo = repo
     this._folder = null
     this._cloneFolder = `/tmp/${this._deployId}`
+    this._relativePath = relativePath
     this._port = null
     this._deployPort = deployPort
     this._domain = domain
@@ -33,6 +34,19 @@ module.exports = class Deployer{
     }
   }
 
+  getDockerfileDirectory(path){
+    if (this._relativePath === undefined){
+      return path
+    }else{
+      let dockerFilePath = path
+      if ((!this._relativePath.startsWith(`/`) && !path.endsWith(`/`)) || (this._relativePath.startsWith(`/`) && path.endsWith(`/`))){
+        dockerFilePath+=`/`
+      }
+      dockerFilePath+=this._relativePath
+      return dockerFilePath
+    }
+  }
+
   async deploy(mustWeSSL){
     Timer.start()
     const existingContainer = await this.verifyIfExists()
@@ -45,7 +59,8 @@ module.exports = class Deployer{
         let t = Timer.stop()
         console.log(`Clone done in ${t} ms, building the Docker image. This could take a while...`)
         Timer.start()
-        exec(`docker build -t ${this._deployId} ${this._cloneFolder}`, (err) => {
+        const dockerFilePath = this.getDockerfileDirectory(this._cloneFolder)
+        exec(`docker build -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000},(err) => {
           const t = Timer.stop()
           if (err) {
             console.error(`exec error: ${err}`)
@@ -95,7 +110,8 @@ module.exports = class Deployer{
         git(path).pull().then(() => {
           console.log(`Done in ${Timer.stop()} ms. Rebuilding Docker image...`)
           Timer.start()
-          exec(`docker build -t ${this._deployId} ${path}`, (err) => {
+          const dockerFilePath = this.getDockerfileDirectory(path)
+          exec(`docker build -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000}, (err) => {
             if (err){
               console.error(`exec error: ${err}`)
             }else{
