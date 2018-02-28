@@ -144,6 +144,7 @@ module.exports = class Deployer{
 
   getPortToPublish(){
     return new Promise((resolve) => {
+      console.log(this._deployPort)
       if (this._deployPort !== null) {
         resolve(this._deployPort)
         return;

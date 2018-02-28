@@ -65,7 +65,7 @@ program.command(`deploy <repoUrl> <websiteDomain>`).alias(`d`)
 })
 .action((repo, domain, options) => {
   const wantSSL = options.no_ssl ? false:true;
-  const deployPort = options.deployPort ? options.deployPort:null;
+  const deployPort = options.deploy_port ? options.deploy_port:null;
   const deployer = new Deployer(repo, domain, wantSSL, deployPort)
   deployer.deploy()
 })
