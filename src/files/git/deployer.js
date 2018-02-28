@@ -139,12 +139,12 @@ module.exports = class Deployer{
 
   async launchContainer(){
     const portToPublish = await this.getPortToPublish()
-    exec(`docker container run -dt --restart unless-stopped --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:/app ${this._deployId}`)
+    const workingDir = await this.getWorkingDir()
+    exec(`docker container run -dt --restart unless-stopped --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:${workingDir} ${this._deployId}`)
   }
 
   getPortToPublish(){
     return new Promise((resolve) => {
-      console.log(this._deployPort)
       if (this._deployPort !== null) {
         resolve(this._deployPort)
         return;
@@ -155,6 +155,15 @@ module.exports = class Deployer{
           resolve(port.split(`/`)[0])
           break;
         }
+      })
+    })
+  }
+
+  getWorkingDir(){
+    return new Promise((resolve) => {
+      exec(`docker image inspect ${this._deployId}`, (err, stdout) => {
+        resolve(JSON.parse(stdout)[0].ContainerConfig.WorkingDir)
+        return;
       })
     })
   }
