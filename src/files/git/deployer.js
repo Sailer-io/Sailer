@@ -107,6 +107,7 @@ module.exports = class Deployer{
         console.log(`Done in ${Timer.stop()} ms.`)
         Timer.start()
         console.log(`Updating sources...`)
+        console.log(path)
         git(path).pull().then(() => {
           console.log(`Done in ${Timer.stop()} ms. Rebuilding Docker image...`)
           Timer.start()
