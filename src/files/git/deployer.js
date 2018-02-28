@@ -11,13 +11,14 @@ const util = require(`util`)
 const axios = require(`../axios`)
 
 module.exports = class Deployer{
-  constructor(repo, domain, mustWeSSL){
+  constructor(repo, domain, mustWeSSL, deployPort){
     this._deployId = uniqid()
     this._protocol = `https`
     this._repo = repo
     this._folder = null
     this._cloneFolder = `/tmp/${this._deployId}`
     this._port = null
+    this._deployPort = deployPort
     this._domain = domain
     this._mustWeSSL = mustWeSSL
     this.assertDomainIsValid()
@@ -83,8 +84,10 @@ module.exports = class Deployer{
   }
 
   async updateDepoyment(container){
+    Timer.stop()
+    console.log(`Stopping current container...`)
+    Timer.start()
     this.getVolumePath(container.uid).then(path => {
-      console.log(`Stopping current container...`)
       exec(`docker container stop ${container.uid}`, () => {
         console.log(`Done in ${Timer.stop()} ms.`)
         Timer.start()
@@ -141,6 +144,10 @@ module.exports = class Deployer{
 
   getPortToPublish(){
     return new Promise((resolve) => {
+      if (this._deployPort !== null) {
+        resolve(this._deployPort)
+        return;
+      }
       exec(`docker image inspect ${this._deployId}`, (err, stdout) => {
         const exposedPorts = JSON.parse(stdout)[0].ContainerConfig.ExposedPorts
         for (let port in exposedPorts){
@@ -219,6 +226,7 @@ module.exports = class Deployer{
 
   doesItNeedsAuth(){
     const tokens = config.get(`tokens`)
+    if (tokens === null) return false
     if (this._repo.startsWith(`github.com`) && tokens.github !== undefined)
       return {username: `sailer`, token: tokens.github}
     for (let t in tokens){

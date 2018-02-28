@@ -55,6 +55,7 @@ program.command(`ps`).description(`List all running Sailer containers`)
 program.command(`deploy <repoUrl> <websiteDomain>`).alias(`d`)
 .description(`Deploy a new Git repository with Sailer.`)
 .option(`--no_ssl`, `Disable Letsencrypt auto SSL`)
+.option(`--deploy_port <deployPort>`, `Manually specify the container port to deploy through Nginx (port 80)`)
 .on(`--help`, () => {
   console.log(`<repoUrl> is the URL of the Git repo to clone.`)
   console.log(`Ex: github.com/username/repo`)
@@ -64,7 +65,8 @@ program.command(`deploy <repoUrl> <websiteDomain>`).alias(`d`)
 })
 .action((repo, domain, options) => {
   const wantSSL = options.no_ssl ? false:true;
-  const deployer = new Deployer(repo, domain, wantSSL)
+  const deployPort = options.deployPort ? options.deployPort:null;
+  const deployer = new Deployer(repo, domain, wantSSL, deployPort)
   deployer.deploy()
 })
 
