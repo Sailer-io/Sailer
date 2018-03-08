@@ -1,18 +1,10 @@
 #!/usr/bin/env node
 const Docker = require(`./files/docker`)
 const Connect = require(`./files/connect`)
-const Timer = require(`./files/timer`)
 const Server = require(`./files/master/server`)
 const program = require(`commander`)
 const Deployer = require(`./files/git/deployer`)
 const version = require(`../package.json`).version
-
-program.command(`wait`).action(() => {
-  Timer.start()
-  setTimeout(() => {
-    Timer.stop()
-  }, 2000)
-})
 
 
 program.command(`login`).description( `Connect Sailer CLI to a Git provider`).action(() => {
@@ -34,14 +26,14 @@ program.command(`ping`)
     srv.ping().then(() => {
       console.log(`Pong! => in ${Date.now() - start}ms`)
     }).catch(() => {
-      console.log(`Error, master server unreachable.`)
+      console.log(`Error, master server unreachable or not linked.`)
     })
   })
 
 program.command(`whoami`).description(`Who are you on the master server?`)
 .action (() => {
   const srv = Server.getInstance()
-  srv.whoami().then(data => console.log(data.data))
+  srv.whoami().then(data => console.log(data.data)).catch(() => console.log(`Error, master server unreachable or not linked.`))
 })
 
 program.command(`ps`).description(`List all running Sailer containers`)
@@ -57,17 +49,18 @@ program.command(`deploy <repoUrl> <websiteDomain>`).alias(`d`)
 .option(`--no_ssl`, `Disable Letsencrypt auto SSL`)
 .option(`--deploy_port <deployPort>`, `Manually specify the container port to deploy through Nginx (port 80)`)
 .option(`--dockerfile_path <path>`, `If the Dockerfile is not at the repository root, specify the relative folder.`)
+.option(`--services <services>`, `Comma separated services list (e.g. mysql,postgres)`)
 .on(`--help`, () => {
-  console.log(`<repoUrl> is the URL of the Git repo to clone.`)
-  console.log(`Ex: github.com/username/repo`)
-  console.log(`<websiteDomain> is the domain which will be attached to your website container.`)
-  console.log(`This is the domain which will have a Letsencrypt certificate too.`)
-  console.log(`To be clear, when you'll enter this domain in a browser, you'll see the website in the container.`)
+  console.log(`\n  <repoUrl> is the URL of the Git repo to clone.`)
+  console.log(`  Ex: github.com/username/repo`)
+  console.log(`\n  <websiteDomain> is the domain which will be attached to your website container.`)
+  console.log(`  This is the domain which will have a Letsencrypt certificate too.`)
+  console.log(`  To be clear, when you'll enter this domain in a browser, you'll see the container website.`)
 })
 .action((repo, domain, options) => {
   const wantSSL = options.no_ssl ? false:true;
   const deployPort = options.deploy_port ? options.deploy_port:null;
-  const deployer = new Deployer(repo, domain, wantSSL, deployPort, options.dockerfile_path)
+  const deployer = new Deployer(repo, domain, wantSSL, deployPort, options.dockerfile_path, options.services)
   deployer.deploy()
 })
 

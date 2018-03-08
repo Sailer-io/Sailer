@@ -9,9 +9,10 @@ const nginxBaseConfig = require(`./nginx-conf`)
 const getPort = require(`get-port`)
 const util = require(`util`)
 const axios = require(`../axios`)
+const ServiceManager = require(`../services/service-manager`)
 
-module.exports = class Deployer{
-  constructor(repo, domain, mustWeSSL, deployPort, relativePath){
+module.exports = class Deployer {
+  constructor(repo, domain, mustWeSSL, deployPort, relativePath, services){
     this._deployId = uniqid()
     this._protocol = `https`
     this._repo = repo
@@ -24,6 +25,8 @@ module.exports = class Deployer{
     this._mustWeSSL = mustWeSSL
     this.assertDomainIsValid()
     this.parseRepoUrl()
+    const serviceManager = new ServiceManager()
+    this._services = serviceManager.deploy(services)
   }
 
   assertDomainIsValid(){
@@ -35,7 +38,7 @@ module.exports = class Deployer{
   }
 
   getDockerfileDirectory(path){
-    if (this._relativePath === undefined){
+    if (this._relativePath === undefined) {
       return path
     }else{
       let dockerFilePath = path
@@ -138,12 +141,9 @@ module.exports = class Deployer{
               })
             }
           })
-          
         })
       })
-      
-    })
-    
+    }) 
   }
 
   verifyIfExists(){
