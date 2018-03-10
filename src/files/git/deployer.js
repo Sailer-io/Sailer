@@ -162,18 +162,19 @@ module.exports = class Deployer {
  }
 
   async launchContainer(){
-    const services = this.getServices()
+    const services = this.getServices(false)
     const portToPublish = await this.getPortToPublish()
     const workingDir = await this.getWorkingDir()
     exec(`docker container run -dt --restart unless-stopped --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:${workingDir} ${services} ${this._deployId}`)
   }
 
-  getServices(){
+  getServices(build = true){
     let services = ``
     if (this._services !== null){
       for (let service in this._services){
         const variableName = `${service}_root_password`.toUpperCase()
-        services+=`--network ${service} --env "${variableName}=${this._services[service]}" `
+        const envArg = build ? `--build-arg`:`-e`
+        services+=`--network ${service} ${envArg} "${variableName}=${this._services[service]}" `
       }
       services = services.slice(0,-1)
     }
