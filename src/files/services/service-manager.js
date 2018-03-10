@@ -9,7 +9,7 @@ const Timer = require(`../timer`)
 module.exports = class ServiceManager {
 
     constructor(){
-        this._servicesList = []
+        this._servicesList = {}
     }
 
     async deploy(services){
@@ -21,7 +21,7 @@ module.exports = class ServiceManager {
                 throw `Error! "${element}" is not a supported service at this time. Only MySQL is supported.`
             }
         });
-        for (const service of wantedServicesList ){
+        for (let service of wantedServicesList ){
             await this.launch(service)
         }
         Timer.stop()
@@ -42,6 +42,6 @@ module.exports = class ServiceManager {
             })
         }
         console.log(`The ${serviceName} root password is: ${pass}`)
-        this._servicesList.push(serviceName)
+        this._servicesList[serviceName] = pass
     }
 }

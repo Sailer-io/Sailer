@@ -26,7 +26,7 @@ module.exports = class Deployer {
     this.assertDomainIsValid()
     this.parseRepoUrl()
     this._sm = new ServiceManager()
-    this._services = []
+    this._services = null
   }
 
   async deployServices(services){
@@ -170,10 +170,11 @@ module.exports = class Deployer {
 
   getServices(){
     let services = ``
-    if (this._services.length>0){
-      this._services.forEach(element => {
-        services+=`--network ${element} `
-      });
+    if (this._services !== null){
+      for (let service in this._services){
+        const variableName = `${service}_root_password`.toUpperCase()
+        services+=`--network ${service} --env "${variableName}=${this._services[service]}" `
+      }
       services = services.slice(0,-1)
     }
     return services
