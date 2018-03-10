@@ -12,7 +12,7 @@ const axios = require(`../axios`)
 const ServiceManager = require(`../services/service-manager`)
 
 module.exports = class Deployer {
-  constructor(repo, domain, mustWeSSL, deployPort, relativePath, services){
+  constructor(repo, domain, mustWeSSL, deployPort, relativePath){
     this._deployId = uniqid()
     this._protocol = `https`
     this._repo = repo
@@ -25,8 +25,14 @@ module.exports = class Deployer {
     this._mustWeSSL = mustWeSSL
     this.assertDomainIsValid()
     this.parseRepoUrl()
-    const serviceManager = new ServiceManager()
-    this._services = serviceManager.deploy(services)
+    this._sm = new ServiceManager()
+    this._services = null
+  }
+
+  async deployServices(services){
+    if (services !== undefined){
+      this._services = await this._sm.deploy(services)
+    }
   }
 
   assertDomainIsValid(){
@@ -155,9 +161,16 @@ module.exports = class Deployer {
  }
 
   async launchContainer(){
+    let services = ``
+    if (this._services.length>0){
+      this._services.forEach(element => {
+        services+=`--network ${element} `
+      });
+      services = services.slice(0,-1)
+    }
     const portToPublish = await this.getPortToPublish()
     const workingDir = await this.getWorkingDir()
-    exec(`docker container run -dt --restart unless-stopped --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:${workingDir} ${this._deployId}`)
+    exec(`docker container run -dt --restart unless-stopped --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:${workingDir} ${services} ${this._deployId}`)
   }
 
   getPortToPublish(){

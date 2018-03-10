@@ -60,10 +60,12 @@ program.command(`deploy <repoUrl> <websiteDomain>`).alias(`d`)
 .action((repo, domain, options) => {
   const wantSSL = options.no_ssl ? false:true;
   const deployPort = options.deploy_port ? options.deploy_port:null;
-  const deployer = new Deployer(repo, domain, wantSSL, deployPort, options.dockerfile_path, options.services)
-  deployer.deploy()
+  const deployer = new Deployer(repo, domain, wantSSL, deployPort, options.dockerfile_path)
+  deployer.deployServices(options.services).then(function (){
+    deployer.deploy()
+  })
 })
 
-if (process.argv.length===2) program.outputHelp();
+if (process.argv.length === 2) program.outputHelp();
 program.version(version, `-v, --version`)
 program.parse(process.argv)

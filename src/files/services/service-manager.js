@@ -9,10 +9,10 @@ const Timer = require(`../timer`)
 module.exports = class ServiceManager {
 
     constructor(){
-        this._servicesList = {}
+        this._servicesList = []
     }
 
-    deploy(services){
+    async deploy(services){
         console.log(`Waiting for services to be up and running...`)
         Timer.start()
         const wantedServicesList = services.split(`,`)
@@ -21,22 +21,27 @@ module.exports = class ServiceManager {
                 throw `Error! "${element}" is not a supported service at this time. Only MySQL is supported.`
             }
         });
-        wantedServicesList.forEach(element => {
-            this.launch(element)
-        });
+        for (const service of wantedServicesList ){
+            await this.launch(service)
+        }
+        Timer.stop()
+        return this._servicesList;
     }
 
-    launch(serviceName){
-        axios.post(`/services/getOrCreate`, {name: serviceName}).then((resp) => {
-            const pass = resp.data.password
-            if (resp.status === 201){
+    async launch(serviceName) {
+        const service = await axios.post(`services/getOrCreate`, {name: serviceName})
+        const pass = service.data.data.password
+        if (service.status === 201){
+            console.log(`Creating ${serviceName} network...`)
+            exec(`docker network create ${serviceName}`, () => {
                 console.log(`Launching ${serviceName}...`)
-                exec(`docker container run -dt --restart unless-stopped --env "${passwordEnvNames[serviceName]}=${pass}" --name ${serviceName} ${serviceName}`, () => {
+                exec(`docker container run -dt --restart unless-stopped --env "${passwordEnvNames[serviceName]}=${pass}" --network ${serviceName} --name ${serviceName} ${serviceName}`, () => {
                     console.log(`${serviceName} up in ${Timer.stop()} ms.`)
                     Timer.start()
                 })
-            }
-            this._servicesList[serviceName] = pass
-        })
+            })
+        }
+        console.log(`The ${serviceName} root password is: ${pass}`)
+        this._servicesList.push(serviceName)
     }
 }
