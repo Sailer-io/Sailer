@@ -46,6 +46,8 @@ module.exports = class ServiceManager {
                             resolve()
                         })
                     })
+                }else{
+                    console.log(`${serviceName} already exists, skipping...`)
                 }
             })
         })
