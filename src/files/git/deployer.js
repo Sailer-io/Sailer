@@ -69,7 +69,8 @@ module.exports = class Deployer {
         console.log(`Clone done in ${t} ms, building the Docker image. This could take a while...`)
         Timer.start()
         const dockerFilePath = this.getDockerfileDirectory(this._cloneFolder)
-        exec(`docker build -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000},(err) => {
+        const services = this.getServices()
+        exec(`docker build ${services} -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000},(err) => {
           const t = Timer.stop()
           if (err) {
             console.error(`exec error: ${err}`)
@@ -116,12 +117,12 @@ module.exports = class Deployer {
         console.log(`Done in ${Timer.stop()} ms.`)
         Timer.start()
         console.log(`Updating sources...`)
-        console.log(path)
         git(path).pull().then(() => {
           console.log(`Done in ${Timer.stop()} ms. Rebuilding Docker image...`)
           Timer.start()
           const dockerFilePath = this.getDockerfileDirectory(path)
-          exec(`docker build -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000}, (err) => {
+          const services = this.getServices()
+          exec(`docker build ${services} -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000}, (err) => {
             if (err){
               console.error(`exec error: ${err}`)
             }else{
@@ -161,6 +162,13 @@ module.exports = class Deployer {
  }
 
   async launchContainer(){
+    const services = this.getServices()
+    const portToPublish = await this.getPortToPublish()
+    const workingDir = await this.getWorkingDir()
+    exec(`docker container run -dt --restart unless-stopped --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:${workingDir} ${services} ${this._deployId}`)
+  }
+
+  getServices(){
     let services = ``
     if (this._services.length>0){
       this._services.forEach(element => {
@@ -168,9 +176,7 @@ module.exports = class Deployer {
       });
       services = services.slice(0,-1)
     }
-    const portToPublish = await this.getPortToPublish()
-    const workingDir = await this.getWorkingDir()
-    exec(`docker container run -dt --restart unless-stopped --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:${workingDir} ${services} ${this._deployId}`)
+    return services
   }
 
   getPortToPublish(){
