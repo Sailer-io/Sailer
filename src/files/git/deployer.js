@@ -26,7 +26,7 @@ module.exports = class Deployer {
     this.assertDomainIsValid()
     this.parseRepoUrl()
     this._sm = new ServiceManager()
-    this._services = null
+    this._services = []
   }
 
   async deployServices(services){
