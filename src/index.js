@@ -5,6 +5,7 @@ const Server = require(`./files/master/server`)
 const program = require(`commander`)
 const Deployer = require(`./files/git/deployer`)
 const version = require(`../package.json`).version
+const Service = require(`./files/services/service`)
 
 
 program.command(`login`).description( `Connect Sailer CLI to a Git provider`).action(() => {
@@ -46,7 +47,7 @@ program.command(`ps`).description(`List all running Sailer containers`)
 
 program.command(`deploy <repoUrl> <websiteDomain>`).alias(`d`)
 .description(`Deploy a new Git repository with Sailer.`)
-.option(`--no_ssl`, `Disable Letsencrypt auto SSL`)
+.option(`--ssl`, `Enable Letsencrypt auto SSL`)
 .option(`--deploy_port <deployPort>`, `Manually specify the container port to deploy through Nginx (port 80)`)
 .option(`--dockerfile_path <path>`, `If the Dockerfile is not at the repository root, specify the relative folder.`)
 .option(`--services <services>`, `Comma separated services list (e.g. mysql,postgres)`)
@@ -58,12 +59,21 @@ program.command(`deploy <repoUrl> <websiteDomain>`).alias(`d`)
   console.log(`  To be clear, when you'll enter this domain in a browser, you'll see the container website.`)
 })
 .action((repo, domain, options) => {
-  const wantSSL = options.no_ssl ? false:true;
+  const wantSSL = options.ssl ? true:false;
   const deployPort = options.deploy_port ? options.deploy_port:null;
   const deployer = new Deployer(repo, domain, wantSSL, deployPort, options.dockerfile_path)
   deployer.deployServices(options.services).then(function (){
     deployer.deploy()
   })
+})
+
+program.command(`service <serviceName>`)
+.option(`-i, --info`, `Get information about the given service.`).action((name, options) => {
+  if (options.info){
+    Service.displayInfo(name)
+    .then(resp => console.log(resp.data.data))
+    .catch(() => console.log(`Hum, service not found...`))
+  }
 })
 
 if (process.argv.length === 2) program.outputHelp();
