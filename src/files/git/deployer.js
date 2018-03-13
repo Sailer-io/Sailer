@@ -82,8 +82,9 @@ module.exports = class Deployer {
     Timer.start()
     this.getVolumePath(container.uid).then(path => {
       exec(`docker container stop ${container.uid}`, () => {
-        console.log(`\bDone in ${Timer.stop()} ms.`)
+        console.log(`\rDone in ${Timer.stop()} ms.`)
         console.log(`Updating sources...`)
+        Timer.start()
         git(path).pull().then(() => {
           console.log(`Done in ${Timer.stop()} ms. Rebuilding Docker image...`)
           this.buildImage(path)
@@ -98,17 +99,20 @@ module.exports = class Deployer {
     const services = this.getServices()
     exec(`docker build ${services} -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000}, (err) => {
       if (err){
+        Timer.stop()
         console.error(`exec error: ${err}`)
+        process.exit(1) //eslint-disable-line
       }else{
         console.log(`Build done in ${Timer.stop()} ms.`)
         console.log(`Creating Nginx Config...`)
         Timer.start()
         this.deployNginxConfig().then(() => {
-          console.log(`Nginx ready in ${Timer.stop()} ms.`)
-          Timer.start()
+          const t = Timer.stop()
+          console.log(`Nginx ready in ${t} ms.`)
           console.log(`Launching container...`)
+          Timer.start()
           this.launchContainer().then(() => {
-            console.log(`Notifying master server...`)
+            console.log(`\rNotifying master server...`)
             this.registerToMaster().then(() => {
               Timer.stop()
               console.log(`Container successfully launched!`.green.bold)

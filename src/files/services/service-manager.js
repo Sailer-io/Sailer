@@ -36,15 +36,15 @@ module.exports = class ServiceManager {
             axios.post(`services/getOrCreate`, {name: serviceName}).then(service => {
                 const pass = service.data.data.password
                 if (service.status === 201){
-                    console.log(`\bCreating ${serviceName} network...`)
+                    console.log(`\rCreating ${serviceName} network...`)
                     exec(`docker network create ${serviceName}`, () => {
-                        console.log(`\bLaunching ${serviceName}...`)
+                        console.log(`\rLaunching ${serviceName}...`)
                         exec(`docker container run -dt --restart unless-stopped -e "${passwordEnvNames[serviceName]}=${pass}" --network ${serviceName} --name ${serviceName} ${serviceName}`, () => {
                             console.log(`${serviceName} up in ${Timer.stop()} ms.`)
                         })
                     })
                 }else{
-                    console.log(`\b${serviceName} already exists, skipping...`)
+                    console.log(`\r${serviceName} already exists, skipping...`)
                 }
                 Timer.start()
                 this._servicesList[serviceName] = pass
