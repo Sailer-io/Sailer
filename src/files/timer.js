@@ -1,5 +1,5 @@
 module.exports = class Timer {
-  static start (mustWeKeepTimer) {
+  static start (mustWeKeepTimer = false) {
     if (mustWeKeepTimer !== true){
       Timer._time = Date.now()
     }
