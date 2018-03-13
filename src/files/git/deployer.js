@@ -82,8 +82,7 @@ module.exports = class Deployer {
     Timer.start()
     this.getVolumePath(container.uid).then(path => {
       exec(`docker container stop ${container.uid}`, () => {
-        console.log(`Done in ${Timer.stop()} ms.`)
-        Timer.start()
+        console.log(`\bDone in ${Timer.stop()} ms.`)
         console.log(`Updating sources...`)
         git(path).pull().then(() => {
           console.log(`Done in ${Timer.stop()} ms. Rebuilding Docker image...`)
