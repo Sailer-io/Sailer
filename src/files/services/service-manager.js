@@ -41,15 +41,14 @@ module.exports = class ServiceManager {
                         console.log(`\bLaunching ${serviceName}...`)
                         exec(`docker container run -dt --restart unless-stopped -e "${passwordEnvNames[serviceName]}=${pass}" --network ${serviceName} --name ${serviceName} ${serviceName}`, () => {
                             console.log(`${serviceName} up in ${Timer.stop()} ms.`)
-                            Timer.start()
-                            this._servicesList[serviceName] = pass
-                            resolve()
                         })
                     })
                 }else{
                     console.log(`\b${serviceName} already exists, skipping...`)
-                    resolve()
                 }
+                Timer.start()
+                this._servicesList[serviceName] = pass
+                resolve()
             })
         })
     }
