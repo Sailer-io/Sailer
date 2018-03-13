@@ -56,7 +56,7 @@ module.exports = class Deployer {
     }
   }
 
-  async deploy(mustWeSSL){
+  async deploy(mustWeSSL){ //eslint-disable-line
     Timer.start()
     const existingContainer = await this.verifyIfExists()
     await this.createVolume()
@@ -67,39 +67,7 @@ module.exports = class Deployer {
       .then(() => {
         let t = Timer.stop()
         console.log(`Clone done in ${t} ms, building the Docker image. This could take a while...`)
-        Timer.start()
-        const dockerFilePath = this.getDockerfileDirectory(this._cloneFolder)
-        const services = this.getServices()
-        exec(`docker build ${services} -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000},(err) => {
-          const t = Timer.stop()
-          if (err) {
-            console.error(`exec error: ${err}`)
-          }else{
-            console.log(`Build done in ${t} ms.`)
-            console.log(`Creating Nginx Config...`)
-            Timer.start()
-            this.deployNginxConfig().then(() => {
-              console.log(`Nginx ready in ${Timer.stop()} ms.`)
-              Timer.start()
-              if (mustWeSSL){
-                console.log(`Launching Letsencrypt...`)
-                this.letsenscrypt()
-              }
-              console.log(`Launching container...`)
-              this.launchContainer().then(() => {
-                console.log(`Registering container on master server...`)
-                this.registerToMaster().then(() => {
-                  Timer.stop()
-                  console.log(`Container successfully launched!`.green.bold)
-                }).catch(() => {
-                  Timer.stop()
-                  console.log(`The container is online, but there was an error while contacting the master server.`.yellow.bold)
-                  console.log(`Please investigate.`.yellow.bold)
-                })
-              })
-            })
-          }
-        })
+        this.buildImage(this._cloneFolder)
       })
       .catch(() => {
         Timer.stop()
@@ -119,47 +87,51 @@ module.exports = class Deployer {
         console.log(`Updating sources...`)
         git(path).pull().then(() => {
           console.log(`Done in ${Timer.stop()} ms. Rebuilding Docker image...`)
-          Timer.start()
-          const dockerFilePath = this.getDockerfileDirectory(path)
-          const services = this.getServices()
-          exec(`docker build ${services} -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000}, (err) => {
-            if (err){
-              console.error(`exec error: ${err}`)
-            }else{
-              console.log(`Build done in ${Timer.stop()} ms.`)
-              console.log(`Re-creating Nginx Config...`)
-              Timer.start()
-              this.deployNginxConfig().then(() => {
-                console.log(`Nginx ready in ${Timer.stop()} ms.`)
-                Timer.start()
-                console.log(`Launching container...`)
-                this.launchContainer().then(() => {
-                  console.log(`Updating container on master server...`)
-                  this.registerToMaster().then(() => {
-                    Timer.stop()
-                    console.log(`Container successfully launched!`.green.bold)
-                    console.log(`Your website was updated from the latest sources.`.green.bold)
-                  }).catch(() => {
-                    Timer.stop()
-                    console.log(`The container is online, but there was an error while contacting the master server.`.yellow.bold)
-                    console.log(`Please investigate.`.yellow.bold)
-                  })
-                })
-              })
-            }
-          })
+          this.buildImage(path)
         })
       })
     }) 
+  }
+
+  buildImage(path){
+    Timer.start()
+    const dockerFilePath = this.getDockerfileDirectory(path)
+    const services = this.getServices()
+    exec(`docker build ${services} -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000}, (err) => {
+      if (err){
+        console.error(`exec error: ${err}`)
+      }else{
+        console.log(`Build done in ${Timer.stop()} ms.`)
+        console.log(`Creating Nginx Config...`)
+        Timer.start()
+        this.deployNginxConfig().then(() => {
+          console.log(`Nginx ready in ${Timer.stop()} ms.`)
+          Timer.start()
+          console.log(`Launching container...`)
+          this.launchContainer().then(() => {
+            console.log(`Notifying master server...`)
+            this.registerToMaster().then(() => {
+              Timer.stop()
+              console.log(`Container successfully launched!`.green.bold)
+              console.log(`Your website was updated from the latest sources.`.green.bold)
+            }).catch(() => {
+              Timer.stop()
+              console.log(`The container is online, but there was an error while contacting the master server.`.yellow.bold)
+              console.log(`Please investigate.`.yellow.bold)
+            })
+          })
+        })
+      }
+    })
   }
 
   verifyIfExists(){
     return axios.get(`containers/${this._domain}`)
   }
 
- async registerToMaster(){
-   return axios.post(`containers`, {domain: this._domain, uid: this._deployId, repo: this._repo})
- }
+  async registerToMaster(){
+    return axios.post(`containers`, {domain: this._domain, uid: this._deployId, repo: this._repo})
+  }
 
   async launchContainer(){
     const services = this.getServices(false)
