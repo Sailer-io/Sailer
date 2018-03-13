@@ -36,9 +36,9 @@ module.exports = class ServiceManager {
             axios.post(`services/getOrCreate`, {name: serviceName}).then(service => {
                 const pass = service.data.data.password
                 if (service.status === 201){
-                    console.log(`\b Creating ${serviceName} network...`)
+                    console.log(`\bCreating ${serviceName} network...`)
                     exec(`docker network create ${serviceName}`, () => {
-                        console.log(`\b Launching ${serviceName}...`)
+                        console.log(`\bLaunching ${serviceName}...`)
                         exec(`docker container run -dt --restart unless-stopped -e "${passwordEnvNames[serviceName]}=${pass}" --network ${serviceName} --name ${serviceName} ${serviceName}`, () => {
                             console.log(`${serviceName} up in ${Timer.stop()} ms.`)
                             Timer.start()
@@ -47,7 +47,7 @@ module.exports = class ServiceManager {
                         })
                     })
                 }else{
-                    console.log(`\b ${serviceName} already exists, skipping...`)
+                    console.log(`\b${serviceName} already exists, skipping...`)
                     resolve()
                 }
             })
