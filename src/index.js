@@ -8,7 +8,7 @@ const version = require(`../package.json`).version
 const Service = require(`./files/services/service`)
 
 
-program.command(`login`).description( `Connect Sailer CLI to a Git provider`).action(() => {
+program.command(`login`).description(`Connect Sailer CLI to a Git provider`).action(() => {
   console.log(`Note that 2FA is not supported, you must use Tokens to login if your account is protocted by 2FA.`)
   Connect.getInstance().then((con) => {
     con.promptLogin().catch(() => {
@@ -27,14 +27,19 @@ program.command(`ping`)
     srv.ping().then(() => {
       console.log(`Pong! => in ${Date.now() - start}ms`)
     }).catch(() => {
-      console.log(`Error, master server unreachable or not linked.`)
+      console.log(`Error, master server unreachable or not linked.`.red.bold)
     })
   })
 
 program.command(`whoami`).description(`Who are you on the master server?`)
 .action (() => {
   const srv = Server.getInstance()
-  srv.whoami().then(data => console.log(data.data)).catch(() => console.log(`Error, master server unreachable or not linked.`))
+  srv.whoami().then(data => console.log(data.data)).catch(() => console.log(`Error, master server unreachable or not linked.`.red.bold))
+})
+
+program.command(`link`).description(`Link this node to a master server`)
+.action(() => {
+  Server.link()
 })
 
 program.command(`ps`).description(`List all running Sailer containers`)

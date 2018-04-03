@@ -33,9 +33,6 @@ npm i -g sailer-cli >/dev/null 2>&1 & spinner
 mkdir /var/log/sailer
 touch ~/.sailer
 chmod 0600 ~/.sailer
-if [ -z $1 ]; then
-    echo "{\"master\": \"$1\"}" >> ~/.sailer
-fi
 printf "DONE\n"
 echo -ne "Configuring Nginx..."
 curl -fsL -o /etc/nginx/conf.d/proxy.conf https://cdn.sailer.io/nginx-proxy.conf & spinner
