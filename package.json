@@ -27,6 +27,7 @@
     "get-port": "^3.2.0",
     "inquirer": "^5.1.0",
     "jsonfile": "^4.0.0",
+    "lokijs": "^1.5.3",
     "merge-deep": "^3.0.1",
     "simple-git": "^1.91.0",
     "uniqid": "^4.1.1"

@@ -1,15 +1,16 @@
 const fs = require(`fs`)
 const jsonfile = require(`jsonfile`)
 const path = require(`path`)
-const file = path.join(require(`os`).homedir(), `.sailer`)
 const merge = require(`merge-deep`)
+const db = require(`./database`)
 
 module.exports = class Config {
   constructor () {
-    if (fs.existsSync(file)) {
-      this._config = jsonfile.readFileSync(file)
-    } else {
+    this._col = db.getCollection(`config`)
+    if (this._col === null){
       this._config = {}
+    }else{
+      this._config = this._col.find()
     }
   }
 
@@ -35,7 +36,10 @@ module.exports = class Config {
   }
 
   save () {
-    jsonfile.writeFileSync(file, this._config)
-    fs.chmodSync(file, `0600`)
+    db.removeCollection(`config`)
+    this._col = db.addCollection(`config`)
+    this._col.insert(this._config)
+    db.saveDatabase()
+    db.close()
   }
 }
