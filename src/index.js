@@ -11,9 +11,9 @@ const Service = require(`./files/services/service`)
 program.command(`login`).description( `Connect Sailer CLI to a Git provider`).action(() => {
   console.log(`Note: 2FA is not supported, you must use Tokens to login if your account is protocted by 2FA.`)
   Connect.getInstance().then((con) => {
-    con.promptLogin()/*.catch(() => {
+    con.promptLogin().catch(() => {
       console.log(`Bad credentials, please try again.`)
-    })*/
+    })
   })
 })
 
