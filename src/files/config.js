@@ -1,6 +1,3 @@
-const fs = require(`fs`)
-const jsonfile = require(`jsonfile`)
-const path = require(`path`)
 const merge = require(`merge-deep`)
 const db = require(`./database`)
 
