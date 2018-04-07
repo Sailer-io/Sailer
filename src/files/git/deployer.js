@@ -10,6 +10,8 @@ const getPort = require(`get-port`)
 const util = require(`util`)
 const axios = require(`../axios`)
 const ServiceManager = require(`../services/service-manager`)
+const server = require('../master/server').getInstance()
+const Container = require('../container')
 
 module.exports = class Deployer {
   constructor(repo, domain, mustWeSSL, deployPort, relativePath){
@@ -61,7 +63,7 @@ module.exports = class Deployer {
     const existingContainer = await this.verifyIfExists()
     await this.createVolume()
     const cloneUrl = this.getCloneUrl(this._repo)
-    if (existingContainer.data.success) return this.updateDepoyment(existingContainer.data.data, cloneUrl)
+    if (existingContainer !== false) return this.updateDepoyment(existingContainer, cloneUrl)
     git().silent(true)
       .clone(cloneUrl, this._cloneFolder)
       .then(() => {
@@ -113,7 +115,7 @@ module.exports = class Deployer {
           Timer.start()
           this.launchContainer().then(() => {
             console.log(`\rNotifying master server...`)
-            this.registerToMaster().then(() => {
+            this.registerToDatabase().then(() => {
               Timer.stop()
               console.log(`Container successfully launched!`.green.bold)
               console.log(`Your website was updated from the latest sources.`.green.bold)
@@ -129,11 +131,30 @@ module.exports = class Deployer {
   }
 
   verifyIfExists(){
-    return axios.get(`containers/${this._domain}`)
+    return new Promise((resolve) => {
+      axios.get(`containers/${this._domain}`).then(response => {
+        if (response.data.success) {
+          resolve(response.data.data)
+        }else{
+          resolve(false)
+        }
+      })
+    })
   }
 
-  async registerToMaster(){
-    return axios.post(`containers`, {domain: this._domain, uid: this._deployId, repo: this._repo})
+  async registerToDatabase(){
+    return new Promise((resolve, reject) => {
+      const newContainer = new Container(this._domain, this._deployId, this._repo)
+      newContainer.save()
+      if (server.isLinked()){
+        try {
+          await axios.post(`containers`, {domain: this._domain, uid: this._deployId, repo: this._repo})
+          resolve()
+        }catch {
+          reject()
+        }
+      }
+    })
   }
 
   async launchContainer(){
