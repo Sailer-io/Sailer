@@ -8,9 +8,7 @@ const fs = require(`fs`)
 const nginxBaseConfig = require(`./nginx-conf`)
 const getPort = require(`get-port`)
 const util = require(`util`)
-const axios = require(`../axios`)
 const ServiceManager = require(`../services/service-manager`)
-const server = require(`../master/server`).getInstance()
 const Container = require(`../container`)
 
 module.exports = class Deployer {
@@ -145,10 +143,8 @@ module.exports = class Deployer {
   }
 
   async registerToDatabase(){
-    return new Promise((resolve, reject) => {
-      const newContainer = new Container(this._domain, this._deployId, this._repo)
-      newContainer.save()
-    })
+    const newContainer = new Container(this._domain, this._deployId, this._repo)
+    await newContainer.save()
   }
 
   async launchContainer(){

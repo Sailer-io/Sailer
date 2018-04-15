@@ -1,11 +1,9 @@
 require(`colors`)
 const supportedServices = [`mysql`, `mariadb`]
 const passwordEnvNames = {mysql: `MYSQL_ROOT_PASSWORD`, mariadb: `MYSQL_ROOT_PASSWORD`}
-const axios = require(`../axios`)
 const {exec} = require(`child_process`)
 const Timer = require(`../timer`)
 const uniqid = require(`uniqid`)
-const config  = require(`../config`).getInstance()
 const Service = require(`./service`)
 
 
@@ -48,7 +46,7 @@ module.exports = class ServiceManager {
         Timer.start()
         this._servicesList[serviceId] = pass
         let service = new Service(serviceName, serviceId, pass)
-        service.save()
+        await service.save()
 
     }
 

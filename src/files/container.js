@@ -1,4 +1,6 @@
-const config = require('./config').getInstance()
+const config = require(`./config`).getInstance()
+const axios = require(`./axios`)
+const server = require(`./master/server`).getInstance()
 
 module.exports = class Container {
     constructor (domain, uid, repo){
@@ -7,19 +9,20 @@ module.exports = class Container {
         this._repo = repo
     }
 
-    save(){
-        const containersObject = {}
-        const container = {domain: this._domain, uid: this._uid, repo: this._repo}
-        containersObject[`data`][`containers`][this._uid] = container
-        config.add(containersObject)
-        if (server.isLinked()){
-            try {
-                await axios.post(`containers`, {domain: this._domain, uid: this._uid, repo: this._repo})
-                resolve()
-            }catch {
-                reject()
+    async save(){
+        return new Promise((resolve, reject) => {
+            const containersObject = {}
+            const container = {domain: this._domain, uid: this._uid, repo: this._repo}
+            containersObject[`data`][`containers`][this._uid] = container
+            config.add(containersObject)
+            if (server.isLinked()){
+                try {
+                    axios.post(`containers`, {domain: this._domain, uid: this._uid, repo: this._repo}).then(resolve)
+                }catch (e) {
+                    reject()
+                }
             }
-        }
+        })
     }
 
     static find(containerUid){

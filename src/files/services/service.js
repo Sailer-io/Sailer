@@ -1,4 +1,5 @@
 const axios = require(`../axios`)
+const config  = require(`../config`).getInstance()
 
 module.exports = class Service {
     constructor(name, uid, password){
@@ -7,7 +8,7 @@ module.exports = class Service {
         this._password = password
     }
 
-    save(){
+    async save(){
         const servicesObject = {}
         const service = {name: this._name, uid: this._uid, password: this._password}
         servicesObject[`data`][`services`][this._uid] = service
