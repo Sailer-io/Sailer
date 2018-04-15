@@ -10,8 +10,8 @@ const getPort = require(`get-port`)
 const util = require(`util`)
 const axios = require(`../axios`)
 const ServiceManager = require(`../services/service-manager`)
-const server = require('../master/server').getInstance()
-const Container = require('../container')
+const server = require(`../master/server`).getInstance()
+const Container = require(`../container`)
 
 module.exports = class Deployer {
   constructor(repo, domain, mustWeSSL, deployPort, relativePath){
@@ -78,12 +78,12 @@ module.exports = class Deployer {
       })
   }
 
-  async updateDepoyment(container){
+  async updateDepoyment(uid){
     Timer.stop()
     console.log(`Stopping current container...`)
     Timer.start()
-    this.getVolumePath(container.uid).then(path => {
-      exec(`docker container stop ${container.uid}`, () => {
+    this.getVolumePath(uid).then(path => {
+      exec(`docker container stop ${uid}`, () => {
         console.log(`\rDone in ${Timer.stop()} ms.`)
         console.log(`Updating sources...`)
         Timer.start()
@@ -132,13 +132,15 @@ module.exports = class Deployer {
 
   verifyIfExists(){
     return new Promise((resolve) => {
-      axios.get(`containers/${this._domain}`).then(response => {
-        if (response.data.success) {
-          resolve(response.data.data)
-        }else{
-          resolve(false)
+      const containers = config.get(`data`, `containers`)
+      if (containers === null) resolve(false)
+      for (let container in containers){
+        let domain = containers[container][domain]
+        if (domain === this._domain){
+          return resolve(containers[container][`uid`])
         }
-      })
+      }
+      resolve(false)
     })
   }
 
@@ -146,14 +148,6 @@ module.exports = class Deployer {
     return new Promise((resolve, reject) => {
       const newContainer = new Container(this._domain, this._deployId, this._repo)
       newContainer.save()
-      if (server.isLinked()){
-        try {
-          await axios.post(`containers`, {domain: this._domain, uid: this._deployId, repo: this._repo})
-          resolve()
-        }catch {
-          reject()
-        }
-      }
     })
   }
 
@@ -168,8 +162,9 @@ module.exports = class Deployer {
     let services = ``
     if (this._services !== null){
       for (let service in this._services){
-        const variableName = `${service}_root_password`.toUpperCase()
-        const envArg = build ? `--build-arg`:`-e`
+        let serviceName = service.split(`-`)[1]
+        let variableName = `${serviceName}_root_password`.toUpperCase()
+        let envArg = build ? `--build-arg`:`-e`
         services+=`--network ${service} ${envArg} "${variableName}=${this._services[service]}" `
       }
       services = services.slice(0,-1)
@@ -179,15 +174,12 @@ module.exports = class Deployer {
 
   getPortToPublish(){
     return new Promise((resolve) => {
-      if (this._deployPort !== null) {
-        resolve(this._deployPort)
-        return;
-      }
+      if (this._deployPort !== null)
+        return resolve(this._deployPort)
       exec(`docker image inspect ${this._deployId}`, (err, stdout) => {
         const exposedPorts = JSON.parse(stdout)[0].ContainerConfig.ExposedPorts
         for (let port in exposedPorts){
-          resolve(port.split(`/`)[0])
-          break;
+          return resolve(port.split(`/`)[0])
         }
       })
     })
@@ -270,9 +262,9 @@ module.exports = class Deployer {
 
   doesItNeedsAuth(){
     const tokens = config.get(`tokens`)
-    if (tokens === null) return false
     if (this._repo.startsWith(`github.com`) && tokens.github !== undefined)
       return {username: `sailer`, token: tokens.github}
+    if (tokens === null) return false
     for (let t in tokens){
       if (this._repo.startsWith(t)) return tokens[t]
     }

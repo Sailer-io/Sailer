@@ -8,10 +8,18 @@ module.exports = class Container {
     }
 
     save(){
-        const containersObject = {data: {containers: {}}}
+        const containersObject = {}
         const container = {domain: this._domain, uid: this._uid, repo: this._repo}
         containersObject[`data`][`containers`][this._uid] = container
         config.add(containersObject)
+        if (server.isLinked()){
+            try {
+                await axios.post(`containers`, {domain: this._domain, uid: this._uid, repo: this._repo})
+                resolve()
+            }catch {
+                reject()
+            }
+        }
     }
 
     static find(containerUid){

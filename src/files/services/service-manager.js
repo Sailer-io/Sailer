@@ -4,6 +4,9 @@ const passwordEnvNames = {mysql: `MYSQL_ROOT_PASSWORD`, mariadb: `MYSQL_ROOT_PAS
 const axios = require(`../axios`)
 const {exec} = require(`child_process`)
 const Timer = require(`../timer`)
+const uniqid = require(`uniqid`)
+const config  = require(`../config`).getInstance()
+const Service = require(`./service`)
 
 
 module.exports = class ServiceManager {
@@ -31,25 +34,32 @@ module.exports = class ServiceManager {
         return this._servicesList;
     }
 
-    launch(serviceName) {
-        return new Promise((resolve) => {
-            axios.post(`services/getOrCreate`, {name: serviceName}).then(service => {
-                const pass = service.data.data.password
-                if (service.status === 201){
-                    console.log(`\rCreating ${serviceName} network...`)
-                    exec(`docker network create ${serviceName}`, () => {
-                        console.log(`\rLaunching ${serviceName}...`)
-                        exec(`docker container run -dt --restart unless-stopped -e "${passwordEnvNames[serviceName]}=${pass}" --network ${serviceName} --name ${serviceName} ${serviceName}`, () => {
-                            console.log(`${serviceName} up in ${Timer.stop()} ms.`)
-                        })
-                    })
-                }else{
-                    console.log(`\r${serviceName} already exists, skipping...`)
-                }
-                Timer.start()
-                this._servicesList[serviceName] = pass
-                resolve()
+    async launch(serviceName) {
+        const pass = this.makeServicePassword()
+        const serviceId = uniqid()+`-${serviceName}`
+        console.log(`\rCreating ${serviceName} network...`)
+        exec(`docker network create ${serviceId}`, () => {
+            console.log(`\rLaunching ${serviceName}...`)
+            exec(`docker container run -dt --restart unless-stopped -e "${passwordEnvNames[serviceName]}=${pass}" --network ${serviceId} --name ${serviceId} ${serviceName}`, () => {
+                console.log(`${serviceName} up in ${Timer.stop()} ms.`)
             })
         })
+       
+        Timer.start()
+        this._servicesList[serviceId] = pass
+        let service = new Service(serviceName, serviceId, pass)
+        service.save()
+
     }
+
+
+    makeServicePassword() {
+        var text = ``;
+        var possible = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`;
+      
+        for (var i = 0; i < 24; i++)
+          text += possible.charAt(Math.floor(Math.random() * possible.length));
+      
+        return text;
+      }
 }
