@@ -133,7 +133,7 @@ module.exports = class Deployer {
       const containers = config.get(`data`, `containers`)
       if (containers === null) resolve(false)
       for (let container in containers){
-        let domain = containers[container][domain]
+        let domain = containers[container][`domain`]
         if (domain === this._domain){
           return resolve(containers[container][`uid`])
         }
