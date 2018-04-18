@@ -9,7 +9,7 @@ module.exports = class Service {
     }
 
     async save(){
-        const servicesObject = {}
+        const servicesObject = {data: {services: {}}}
         const service = {name: this._name, uid: this._uid, password: this._password}
         servicesObject[`data`][`services`][this._uid] = service
         config.add(servicesObject)

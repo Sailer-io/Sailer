@@ -119,7 +119,7 @@ module.exports = class Deployer {
               console.log(`Your website was updated from the latest sources.`.green.bold)
             }).catch(() => {
               Timer.stop()
-              console.log(`The container is online, but there was an error while contacting the master server or you are not connected to one.`.yellow.bold)
+              console.log(`The container is online, but there was an error while contacting the master server.`.yellow.bold)
               console.log(`Please investigate.`.yellow.bold)
             })
           })

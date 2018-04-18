@@ -9,9 +9,9 @@ module.exports = class Container {
         this._repo = repo
     }
 
-    async save(){
+    save(){
         return new Promise((resolve, reject) => {
-            const containersObject = {}
+            const containersObject = {data: {containers: {}}}
             const container = {domain: this._domain, uid: this._uid, repo: this._repo}
             containersObject[`data`][`containers`][this._uid] = container
             config.add(containersObject)
@@ -21,6 +21,8 @@ module.exports = class Container {
                 }catch (e) {
                     reject()
                 }
+            }else{
+                resolve()
             }
         })
     }
