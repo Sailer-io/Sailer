@@ -1,5 +1,6 @@
 const axios = require(`../axios`)
 const config  = require(`../config`).getInstance()
+const server = require(`../master/server`).getInstance()
 
 module.exports = class Service {
     constructor(name, uid, password){
@@ -13,7 +14,9 @@ module.exports = class Service {
         const service = {name: this._name, uid: this._uid, password: this._password}
         servicesObject[`data`][`services`][this._uid] = service
         config.add(servicesObject)
-        await axios.post(`services/getOrCreate`, {name: this._name})
+        if (server.isLinked()){
+            await axios.post(`services/getOrCreate`, {name: this._name})
+        }
     }
 
     static async displayInfo(serviceName){

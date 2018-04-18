@@ -1,6 +1,7 @@
 require(`colors`)
 const supportedServices = [`mysql`, `mariadb`]
 const passwordEnvNames = {mysql: `MYSQL_ROOT_PASSWORD`, mariadb: `MYSQL_ROOT_PASSWORD`}
+const databasesEnvNames = {mysql: `MYSQL_DATABASE`, mariadb: `MYSQL_DATABASE`}
 const {exec} = require(`child_process`)
 const Timer = require(`../timer`)
 const uniqid = require(`uniqid`)
@@ -35,11 +36,12 @@ module.exports = class ServiceManager {
     async launch(serviceName) {
         const pass = this.makeServicePassword()
         const serviceId = uniqid()+`-${serviceName}`
+        Timer.start()
         console.log(`\rCreating ${serviceName} network...`)
         exec(`docker network create ${serviceId}`, () => {
             console.log(`\rLaunching ${serviceName}...`)
-            exec(`docker container run -dt --restart unless-stopped -e "${passwordEnvNames[serviceName]}=${pass}" --network ${serviceId} --name ${serviceId} ${serviceName}`, () => {
-                console.log(`${serviceName} up in ${Timer.stop()} ms. The hostname to enter in your app config is: ${serviceId.bold}`)
+            exec(`docker container run -dt --restart unless-stopped -e "${passwordEnvNames[serviceName]}=${pass}" -e "${databasesEnvNames[serviceName]}=sailer" --network ${serviceId} --name ${serviceId} ${serviceName}`, () => {
+                console.log(`${serviceName} up in ${Timer.stop()} ms.`)
             })
         })
        
