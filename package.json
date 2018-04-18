@@ -1,6 +1,6 @@
 {
   "name": "sailer-cli",
-  "version": "0.2.1-alpha.13",
+  "version": "0.3.0-alpha.1",
   "description": "Sailer CLI",
   "engines": {
     "node": ">=9.5.0"
@@ -10,7 +10,7 @@
     "flint": "./node_modules/.bin/eslint --fix src/**"
   },
   "main": "src/index.js",
-  "repository": "https://github.com/Sailer-io/CLI",
+  "repository": "https://github.com/Sailer-io/Sailer",
   "author": "Lénaïc Grolleau <lenaic@lenaic.me>",
   "license": "Apache-2.0",
   "private": false,

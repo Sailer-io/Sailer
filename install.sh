@@ -31,7 +31,7 @@ printf "DONE\n"
 echo -ne "Installing Sailer..."
 npm i -g sailer-cli >/dev/null 2>&1 & spinner
 mkdir /var/log/sailer
-touch ~/.sailer
+echo "{}" > ~/.sailer
 chmod 0600 ~/.sailer
 printf "DONE\n"
 echo -ne "Configuring Nginx..."
