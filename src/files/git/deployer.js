@@ -158,10 +158,10 @@ module.exports = class Deployer {
     let services = ``
     if (this._services !== null){
       for (let service in this._services){
-        let serviceName = service.split(`-`)[1]
+        let serviceName = service.split(`-`)[1].toUpperCase()
         let variableName = `${serviceName}_root_password`.toUpperCase()
         let envArg = build ? `--build-arg`:`-e`
-        services+=`--network ${service} ${envArg} "${variableName}=${this._services[service]}" `
+        services+=`--network ${service} ${envArg} "${variableName}=${this._services[service]}" ${envArg} "${serviceName}_HOSTNAME=${service}" `
       }
       services = services.slice(0,-1)
     }
