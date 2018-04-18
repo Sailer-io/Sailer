@@ -29,7 +29,7 @@ curl -fsL -o docker.sh https://get.docker.com & spinner
 bash docker.sh >/dev/null 2>&1 & spinner
 printf "DONE\n"
 echo -ne "Installing Sailer..."
-npm i -g sailer-cli@pre >/dev/null 2>&1 & spinner
+npm i -g sailer-cli >/dev/null 2>&1 & spinner
 mkdir /var/log/sailer
 echo "{}" > ~/.sailer
 chmod 0600 ~/.sailer
