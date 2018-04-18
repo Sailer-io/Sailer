@@ -39,7 +39,7 @@ module.exports = class ServiceManager {
         exec(`docker network create ${serviceId}`, () => {
             console.log(`\rLaunching ${serviceName}...`)
             exec(`docker container run -dt --restart unless-stopped -e "${passwordEnvNames[serviceName]}=${pass}" --network ${serviceId} --name ${serviceId} ${serviceName}`, () => {
-                console.log(`${serviceName} up in ${Timer.stop()} ms.`)
+                console.log(`${serviceName} up in ${Timer.stop()} ms. The hostname to enter in your app config is: ${serviceId.bold}`)
             })
         })
        
