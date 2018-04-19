@@ -11,6 +11,10 @@ const util = require(`util`)
 const ServiceManager = require(`../services/service-manager`)
 const Container = require(`../container`)
 
+/**
+ * The main class.
+ * It starts a new container, clone the repository and configure Nginx.
+ */
 module.exports = class Deployer {
   constructor(repo, domain, mustWeSSL, deployPort, relativePath){
     this._deployId = uniqid()
@@ -29,12 +33,19 @@ module.exports = class Deployer {
     this._services = null
   }
 
+  /**
+   * Launch all needed services
+   * @param {Service[]} services 
+   */
   async deployServices(services){
     if (services !== undefined){
       this._services = await this._sm.deploy(services)
     }
   }
 
+  /**
+   * Verify if the given domain is a valid domain using regex.
+   */
   assertDomainIsValid(){
     //eslint-disable-next-line
     const isValid = this._domain.match(`^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$`)
@@ -43,6 +54,10 @@ module.exports = class Deployer {
     }
   }
 
+  /**
+   * Used to get the path where the clone files are. It removes trailing slashes.
+   * @param {string} path 
+   */
   getDockerfileDirectory(path){
     if (this._relativePath === undefined) {
       return path
@@ -56,12 +71,18 @@ module.exports = class Deployer {
     }
   }
 
+  /**
+   * Launch a new or existing deployment.
+   * @param {boolean} mustWeSSL (Not used for the moment)
+   */
   async deploy(mustWeSSL){ //eslint-disable-line
     Timer.start()
     const existingContainer = await this.verifyIfExists()
     await this.createVolume()
     const cloneUrl = this.getCloneUrl(this._repo)
-    if (existingContainer !== false) return this.updateDepoyment(existingContainer, cloneUrl)
+    //Verify if the given domain exists. If yes, update the deployment, don't create a new one.
+    if (existingContainer !== false)
+      return this.updateDepoyment(existingContainer, cloneUrl)
     git().silent(true)
       .clone(cloneUrl, this._cloneFolder)
       .then(() => {
@@ -76,6 +97,10 @@ module.exports = class Deployer {
       })
   }
 
+  /**
+   * Update an existing deployment
+   * @param {string} uid 
+   */
   async updateDepoyment(uid){
     Timer.stop()
     console.log(`Stopping current container...`)
@@ -93,10 +118,15 @@ module.exports = class Deployer {
     }) 
   }
 
+  /**
+   * Build the Docker Image
+   * @param {string} path The path where the Dockerfile is.
+   */
   buildImage(path){
     Timer.start()
     const dockerFilePath = this.getDockerfileDirectory(path)
     const services = this.getServices()
+    //First, build the image.
     exec(`docker build ${services} -t ${this._deployId} ${dockerFilePath}`, {maxBuffer: 1024 * 5000}, (err) => {
       if (err){
         Timer.stop()
@@ -106,13 +136,16 @@ module.exports = class Deployer {
         console.log(`Build done in ${Timer.stop()} ms.`)
         console.log(`Creating Nginx Config...`)
         Timer.start()
+        //Then, update nginx config.
         this.deployNginxConfig().then(() => {
           const t = Timer.stop()
           console.log(`Nginx ready in ${t} ms.`)
           console.log(`Launching container...`)
           Timer.start()
+          //Finally, launch the new container
           this.launchContainer().then(() => {
             console.log(`\rNotifying master server...`)
+            //Registering new container in database.
             this.registerToDatabase().then(() => {
               Timer.stop()
               console.log(`Container successfully launched!`.green.bold)
@@ -128,6 +161,10 @@ module.exports = class Deployer {
     })
   }
 
+  /**
+   * Verify if the given domain is attached to an existing container.
+   * If yes, update deployement, otherwise, create a new one.
+   */
   verifyIfExists(){
     return new Promise((resolve) => {
       const containers = config.get(`data`, `containers`)
@@ -142,11 +179,17 @@ module.exports = class Deployer {
     })
   }
 
+  /**
+   * Register the new container to the JSON file and to the master server.
+   */
   async registerToDatabase(){
     const newContainer = new Container(this._domain, this._deployId, this._repo)
     await newContainer.save()
   }
 
+  /**
+   * Start a new Docker container.
+   */
   async launchContainer(){
     const services = this.getServices(false)
     const portToPublish = await this.getPortToPublish()
@@ -154,6 +197,11 @@ module.exports = class Deployer {
     exec(`docker container run -dt --restart unless-stopped --name ${this._deployId} -p 127.0.0.1:${this._port}:${portToPublish} -v ${this._deployId}:${workingDir} ${services} ${this._deployId}`)
   }
 
+  /**
+   * Get the services string part. Each service has its own network and its own env variables.
+   * So each service adds a line like --network myService -e "MYSERVICE_ROOT_PASSWORD=1234"
+   * @param {boolean} build The env argument is different while building or launching container.
+   */
   getServices(build = true){
     let services = ``
     if (this._services !== null){
@@ -168,6 +216,10 @@ module.exports = class Deployer {
     return services
   }
 
+  /**
+   * Inspect the docker image to know the first published port on the container.
+   * Sailer publishes only one port at this time.
+   */
   getPortToPublish(){
     return new Promise((resolve) => {
       if (this._deployPort !== null)
@@ -181,15 +233,22 @@ module.exports = class Deployer {
     })
   }
 
+  /**
+   * Get the working directory of the container.
+   * Used while updating to copy the directory content.
+   */
   getWorkingDir(){
     return new Promise((resolve) => {
       exec(`docker image inspect ${this._deployId}`, (err, stdout) => {
-        resolve(JSON.parse(stdout)[0].ContainerConfig.WorkingDir)
-        return;
+        return resolve(JSON.parse(stdout)[0].ContainerConfig.WorkingDir)
       })
     })
   }
 
+  /**
+   * Deploy or update Nginx proxy configuration per host.
+   * The config name is my.domain.conf
+   */
   async deployNginxConfig(){
     await this.generatePort()
     const nginxConfig = util.format(nginxBaseConfig, 
@@ -198,14 +257,23 @@ module.exports = class Deployer {
     exec(`service nginx reload`)
   }
 
+  /**
+   * Get a random port available to link the container and the local host.
+   */
   async generatePort(){
     this._port = await getPort()
   }
 
+  /**
+   * In the future, used to set letsencrypt automatically.
+   */
   async letsencrypt(){
     
   }
 
+  /**
+   * Create a Volume. It allows to keep the files between deployments.
+   */
   createVolume(){
     return new Promise((resolve) => {
       exec(`docker volume create ${this._deployId}`, () => {
@@ -217,6 +285,10 @@ module.exports = class Deployer {
     })
   }
 
+  /**
+   * Get the volume path (like /var/docker/...) where the container files are.
+   * @param {string} deployId 
+   */
   getVolumePath(deployId){
     return new Promise (resolve => {
         exec(`docker volume inspect ${deployId}`, (error, stdout) => {
@@ -226,6 +298,9 @@ module.exports = class Deployer {
     })
   }
 
+  /**
+   * If Sailer has credentials for the given Git server, set these credentials in the URL.
+   */
   getCloneUrl(){
     const login = this.doesItNeedsAuth()
     if (login === false){
@@ -235,6 +310,10 @@ module.exports = class Deployer {
     }
   }
 
+  /**
+   * User can give any Git url like ssh git http or https.
+   * We parse the URL to get each time the same URL.
+   */
   parseRepoUrl(){
     let goodUrl = this._repo
     if (goodUrl.startsWith(`http://`)){
@@ -256,6 +335,11 @@ module.exports = class Deployer {
     this._repo = goodUrl
   }
 
+  /**
+   * Search in the .sailer file if the user already did the 'sailer login' command.
+   * If yes, returns the token used to login.
+   * Used for private repositories.
+   */
   doesItNeedsAuth(){
     const tokens = config.get(`tokens`)
     if (this._repo.startsWith(`github.com`) && tokens !== null && tokens.github !== undefined)
