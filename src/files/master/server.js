@@ -54,6 +54,8 @@ module.exports = class Server {
       if (ping.status!=200){
         throw false;
       }
+      Config.getInstance().add({master: url})
+      console.log(`Node successfully linked to the given master server!`.green.bold)
     } catch (error){
       if (error.response.status === 401){
         console.log(`This node is not authorized on the given master server.`.red.bold)
@@ -61,7 +63,5 @@ module.exports = class Server {
         console.log(`Master server unreachable, error code: `+error.response.status)
       }
     }
-    Config.getInstance().add({master: url})
-    console.log(`Node successfully linked to the given master server!`.green.bold)
   }
 }
